@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عضوگیر بله - داشبورد</title>
+    <!-- استفاده از Tailwind CSS برای طراحی سریع و مدرن -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- فونت فارسی Vazir (باید فایل فونت را در پوشه پروژه داشته باشید) -->
+    <style>
+        @font-face {
+            font-family: 'Vazir';
+            src: url('vazir.woff2') format('woff2'); /* مسیر فونت خود را قرار دهید */
+            font-weight: normal;
+            font-style: normal;
+        }
+        body {
+            font-family: 'Vazir', Tahoma, sans-serif; /* اولویت با وزیر، اگر نبود تاهوما */
+            background-color: #f3f4f6; /* رنگ خاکستری روشن Tailwind */
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.85); /* کمی شفافیت بیشتر */
+            backdrop-filter: blur(12px); /* بلور کمی بیشتر */
+            -webkit-backdrop-filter: blur(12px); /* برای سازگاری با سافاری */
+            border: 1px solid rgba(255, 255, 255, 0.2); /* حاشیه ظریف */
+        }
+        /* استایل‌های نوار پایین */
+        .nav-button.active {
+            color: #2563eb; /* رنگ آبی تیره برای آیتم فعال */
+        }
+        .nav-button.active span:first-child { /* آیکون آیتم فعال */
+            transform: scale(1.2); /* کمی بزرگتر شدن آیکون */
+        }
+        .nav-button span:first-child { /* آیکون‌ها */
+           transition: transform 0.2s ease-in-out;
+        }
+        .nav-button:hover span:first-child { /* افکت هاور برای آیکون */
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- اپلیکیشن در موبایل نمایش داده می‌شود، پس عرض را محدود می‌کنیم -->
+    <div class="max-w-md mx-auto min-h-screen flex flex-col bg-gray-100">
+        
+        <!-- Header / بخش خوش‌آمدگویی -->
+        <header class="p-6 flex justify-between items-center bg-white shadow-md">
+            <div>
+                <h1 class="text-xl font-bold text-blue-600">عضوگیر هوشمند</h1>
+                <p class="text-xs text-gray-500">خوش آمدید، کاربر عزیز 👋</p>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg shadow">
+                👤
+            </div>
+        </header>
+
+        <!-- Main Content / محتوای اصلی -->
+        <main id="main-content" class="flex-grow p-4 space-y-4 overflow-y-auto glass-effect rounded-b-3xl" style="height: calc(100vh - 65px - 70px);"> 
+            
+            <!-- Balance Card / کارت موجودی -->
+            <div class="bg-gradient-to-l from-blue-600 to-blue-400 rounded-3xl p-6 text-white shadow-lg shadow-blue-200">
+                <p class="text-sm opacity-80">موجودی حساب شما</p>
+                <div class="flex items-center justify-between mt-2">
+                    <h2 class="text-3xl font-extrabold flex items-baseline">
+                        ۵۰,۰۰۰ 
+                        <span class="text-sm font-normal ml-1">تومان</span>
+                    </h2>
+                    <button class="bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full text-xs transition font-semibold shadow">
+                        + شارژ حساب
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Actions / دکمه‌های دسترسی سریع -->
+            <div class="grid grid-cols-2 gap-4">
+                <!-- دکمه ثبت سفارش -->
+                <button class="bg-white p-6 rounded-2xl shadow-md flex flex-col items-center justify-center space-y-2 active:scale-95 transition transform border border-gray-100 hover:shadow-lg">
+                    <span class="text-3xl">🚀</span>
+                    <span class="font-bold text-sm">ثبت سفارش جدید</span>
+                </button>
+
+                <!-- دکمه تاریخچه -->
+                <button class="bg-white p-6 rounded-2xl shadow-md flex flex-col items-center justify-center space-y-2 active:scale-95 transition transform border border-gray-100 hover:shadow-lg">
+                    <span class="text-3xl">📜</span>
+                    <span class="font-bold text-sm">تاریخچه سفارشات</span>
+                </button>
+            </div>
+
+            <!-- Statistics / بخش آمار کوچک -->
+            <div class="bg-white rounded-2xl p-4 shadow-md border border-gray-100">
+                <h3 class="text-sm font-bold mb-3 text-gray-600 border-b pb-2">خلاصه‌ی فعالیت</h3>
+                <div class="flex justify-between items-center">
+                    <div class="text-center w-1/2 pr-2">
+                        <p class="text-xs text-gray-400">عضوهای اضافه شده</p>
+                        <p class="font-bold text-blue-600 text-lg mt-1">۱۲,۴۵۰</p>
+                    </div>
+                    <div class="h-10 w-[1px] bg-gray-200 mx-2"></div>
+                    <div class="text-center w-1/2 pl-2">
+                        <p class="text-xs text-gray-400">سفارش‌های فعال</p>
+                        <p class="font-bold text-orange-500 text-lg mt-1">۳</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- اطلاعات بیشتر (مثال) -->
+            <div class="glass-effect rounded-xl p-4 text-sm text-gray-700 space-y-3">
+                <h4 class="font-bold border-b pb-2 text-gray-800">نکات مهم</h4>
+                <p>✅ برای افزایش سرعت، از ثبت سفارش‌های تکراری خودداری کنید.</p>
+                <p>✅ برای پیگیری سفارش، به بخش "تاریخچه سفارشات" مراجعه نمایید.</p>
+            </div>
+
+        </main>
+
+        <!-- Bottom Navigation / منوی پایین صفحه -->
+        <nav class="bg-white/80 backdrop-blur-sm border-t border-gray-100 p-3 flex justify-around items-center shadow-inner">
+            <button class="nav-button flex flex-col items-center text-gray-500 w-1/4 py-2" data-page="home">
+                <span class="text-xl mb-1">🏠</span>
+                <span class="text-[10px] font-medium">خانه</span>
+            </button>
+            <button class="nav-button flex flex-col items-center text-gray-500 w-1/4 py-2" data-page="orders">
+                <span class="text-xl mb-1">🛒</span>
+                <span class="text-[10px] font-medium">سفارش‌ها</span>
+            </button>
+            <button class="nav-button flex flex-col items-center text-gray-500 w-1/4 py-2" data-page="charge">
+                <span class="text-xl mb-1">💳</span>
+                <span class="text-[10px] font-medium">شارژ</span>
+            </button>
+            <button class="nav-button flex flex-col items-center text-gray-500 w-1/4 py-2" data-page="settings">
+                <span class="text-xl mb-1">⚙️</span>
+                <span class="text-[10px] font-medium">تنظیمات</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        // فعال کردن دکمه اول نوار پایین به صورت پیش‌فرض
+        document.addEventListener('DOMContentLoaded', () => {
+            const firstButton = document.querySelector('.nav-button');
+            if (firstButton) {
+                firstButton.classList.add('active');
+                // نمایش صفحه مربوط به دکمه اول (اگر صفحه‌ای دارید)
+                // showPageContent(firstButton.getAttribute('data-page')); 
+            }
+        });
+
+        // مدیریت فعال/غیرفعال شدن دکمه‌های نوار پایین
+        document.querySelectorAll('.nav-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // حذف کلاس active از همه دکمه‌ها
+                document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+                // اضافه کردن کلاس active به دکمه کلیک شده
+                this.classList.add('active');
+
+                // اینجا می‌توانید تابعی برای نمایش محتوای مربوط به هر صفحه فراخوانی کنید
+                // const pageId = this.getAttribute('data-page');
+                // showPageContent(pageId); 
+            });
+        });
+
+        // تابعی فرضی برای نمایش محتوای صفحه (باید پیاده‌سازی شود)
+        // function showPageContent(pageId) {
+        //     console.log('نمایش محتوای صفحه:', pageId);
+        //     // منطق نمایش محتوای مربوط به هر صفحه اینجا اضافه می‌شود
+        // }
+    </script>
+</body>
+</html>
