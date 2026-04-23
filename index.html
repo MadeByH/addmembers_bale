@@ -5,154 +5,155 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>عضو بگیر بله</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <style>
-        /* Additional custom styles if needed */
+        /* برای اطمینان از اینکه footer همیشه در پایین صفحه باقی بماند */
         body {
-            font-family: "vazir", sans-serif;
-        }
-        .gradient-background {
-            background: linear-gradient(to bottom, #4CAF50, #2E7D32);
-        }
-        .profile-circle {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .profile-circle img {
-            max-width: 60%;
-            max-height: 60%;
-        }
-        .bottom-nav-item {
             display: flex;
             flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f3f4f6; /* رنگ پس‌زمینه خاکستری روشن Tailwind */
+        }
+        main {
+            flex: 1; /* به main اجازه می‌دهد تا فضای موجود را اشغال کند */
+            padding-bottom: 100px; /* فضای کافی برای نوار ناوبری پایین */
+        }
+        /* استایل برای نوار ناوبری پایین */
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column; /* این خط برای نمایش عمودی بود، اما footer اصلی آن را افقی می‌کند */
             align-items: center;
             justify-content: center;
+            text-decoration: none;
+            color: #6b7280; /* رنگ خاکستری تیره Tailwind */
             padding: 8px 0;
-            flex-grow: 1;
-            color: #757575;
+            flex: 1; /* باعث می‌شود آیتم‌ها فضای مساوی داشته باشند */
+            transition: color 0.3s ease;
         }
-        .bottom-nav-item.active {
-            color: #1976D2;
+        .bottom-nav-item:hover {
+            color: #111827; /* رنگ مشکی Tailwind */
         }
         .bottom-nav-item i {
-            font-size: 20px;
-            margin-bottom: 4px;
+            font-size: 24px; /* اندازه آیکون‌ها */
+            margin-bottom: 4px; /* فاصله بین آیکون و متن */
         }
-        .main-buttons .btn {
-            padding: 15px 25px;
-            border-radius: 10px;
+        /* استایل برای دکمه‌های اصلی */
+        .main-action-button {
+            background-color: #3b82f6; /* آبی Tailwind */
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
             font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease;
         }
-        .btn-warning {
-            background-color: #ff9800;
-            color: white;
-        }
-        .btn-add-member {
-            background-color: #4CAF50;
-            color: white;
-        }
-        .btn-continue {
-            background-color: #1976D2;
-            color: white;
+        .main-action-button:hover {
+            background-color: #2563eb; /* آبی تیره‌تر Tailwind */
         }
     </style>
 </head>
-<body class="bg-gray-100">
+<body>
 
-    <!-- Header -->
-    <header class="gradient-background text-white p-4 shadow-md">
-        <div class="flex justify-between items-center mb-3">
-            <div class="flex items-center">
-                <!-- Logo Placeholder -->
-                <div class="w-8 h-8 bg-white rounded-full mr-2 flex items-center justify-center">
-                    <span class="text-green-600 font-bold text-sm">B</span>
-                </div>
-                <h1 class="text-xl font-bold">عضو بگیر بله</h1>
-            </div>
-            <div class="flex space-x-4">
-                <button class="text-lg">کانال</button>
-                <button class="text-lg font-semibold border-b-2 border-white pb-1">گروه</button>
-                <button class="text-lg">کامنت</button>
-            </div>
+    <header class="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center">
+            <i class='bx bxl-telegram text-blue-500 text-3xl ml-2'></i>
+            <h1 class="text-xl font-bold text-gray-800">عضو بگیر بله</h1>
         </div>
+        <nav class="flex space-x-4">
+            <a href="#channels" class="text-gray-600 hover:text-blue-500 transition duration-300">کانال</a>
+            <a href="#groups" class="text-gray-600 hover:text-blue-500 transition duration-300">گروه</a>
+            <a href="#comments" class="text-gray-600 hover:text-blue-500 transition duration-300">کامنت</a>
+        </nav>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="p-4">
-
-        <!-- Profile Section -->
-        <section class="text-center mb-6">
-            <div class="profile-circle mx-auto mb-2">
-                <!-- Placeholder for Profile Image -->
-                <img src="https://img.icons8.com/material-sharp/24/000000/user.png" alt="Profile Icon">
+    <main class="flex-1 container mx-auto p-4">
+        <!-- بخش پروفایل -->
+        <section id="profile" class="bg-white rounded-lg shadow-lg p-6 mb-6 flex items-center space-x-4">
+            <div class="relative">
+                <img src="https://via.placeholder.com/80" alt="Profile Picture" class="w-20 h-20 rounded-full border-4 border-blue-500">
+                <span class="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full p-1">
+                    <i class='bx bxs-check-shield'></i>
+                </span>
             </div>
-            <p class="text-lg font-semibold text-gray-800">mezonemaleka</p>
-        </section>
-
-        <!-- Settings Options -->
-        <section class="bg-white p-4 rounded-lg shadow-md mb-6">
-            <h2 class="text-lg font-bold mb-3 text-gray-700">تنظیمات</h2>
-            <div class="flex items-center justify-between mb-3">
-                <span>نمایش عکس پروفایل</span>
-                <input type="checkbox" class="toggle-checkbox">
-            </div>
-            <div class="flex items-center justify-between">
-                <span>بی‌صدا کردن</span>
-                <input type="checkbox" class="toggle-checkbox">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800">mezonemaleka</h2>
+                <p class="text-sm text-gray-500">آخرین فعالیت: همین الان</p>
             </div>
         </section>
 
-        <!-- Main Action Buttons -->
-        <section class="main-buttons text-center">
-            <button class="btn btn-warning w-full mb-3 flex items-center justify-center">
-                <i class='bx bx-bell text-xl mr-2'></i> <!-- Bell Icon -->
-                <span>هشدار</span>
-            </button>
-            <button class="btn btn-add-member w-full mb-3 flex items-center justify-center">
-                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                <i class='bx bx-user-plus text-xl mr-2'></i> <!-- User Plus Icon -->
-                <span>افزودن عضو</span>
-            </button>
-            <button class="btn btn-continue w-full flex items-center justify-center">
-                <i class='bx bx-right-arrow-alt text-xl mr-2'></i> <!-- Right Arrow Icon -->
-                <span>ادامه</span>
-            </button>
+        <!-- بخش تنظیمات -->
+        <section id="settings" class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">تنظیمات</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-700">نمایش عکس پروفایل</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" value="" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-700">بی‌صدا کردن</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" value="" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- بخش دکمه‌های اصلی -->
+        <section id="main-actions" class="bg-white rounded-lg shadow-lg p-6 mb-6 text-center">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">اقدامات اصلی</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button class="main-action-button flex items-center justify-center space-x-2 py-3 px-4">
+                    <i class='bx bx-bell'></i>
+                    <span>هشدار</span>
+                </button>
+                <button class="main-action-button flex items-center justify-center space-x-2 py-3 px-4">
+                    <i class='bx bx-user-plus'></i>
+                    <span>افزودن عضو</span>
+                </button>
+                <button class="main-action-button flex items-center justify-center space-x-2 py-3 px-4">
+                    <i class='bx bx-play'></i>
+                    <span>ادامه</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- بخش کانال سفارشات (با متن پیش‌فرض) -->
+        <section id="orders-channel" class="bg-white rounded-lg shadow-lg p-6 mb-6 text-center">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">کانال سفارشات</h2>
+            <div class="flex flex-col items-center justify-center h-full">
+                 <i class='bx bx-info-circle text-yellow-500 text-4xl mb-3'></i>
+                 <p class="text-gray-600 text-lg">کانال جدیدی برای عضویت نیست.</p>
+            </div>
         </section>
 
     </main>
 
-    <!-- Bottom Navigation Bar -->
-    <footer class="fixed bottom-0 left-0 right-0 bg-white shadow-inner p-2 flex justify-around border-t border-gray-200">
-        <a href="#" class="bottom-nav-item active">
-            <i class='bx bxs-coin text-2xl'></i> <!-- Coin Icon -->
-            <span class="text-xs">سکه بگیر</span>
+    <footer class="bg-white p-3 fixed bottom-0 left-0 right-0 w-full shadow-md flex justify-around items-center z-50 border-t border-gray-200">
+        <a href="#profile" class="bottom-nav-item">
+            <i class='bx bx-user'></i>
+            <span>پروفایل</span>
         </a>
-        <a href="#" class="bottom-nav-item">
-            <i class='bx bx-cart text-2xl'></i> <!-- Cart Icon -->
-            <span class="text-xs">سبد خرید</span>
+        <a href="#settings" class="bottom-nav-item">
+            <i class='bx bx-cog'></i>
+            <span>تنظیمات</span>
         </a>
-        <a href="#" class="bottom-nav-item">
-            <i class='bx bx-user-plus text-2xl'></i> <!-- User Plus Icon -->
-            <span class="text-xs">افزودن عضو</span>
+        <a href="#main-actions" class="bottom-nav-item">
+            <i class='bx bx-plus-circle'></i>
+            <span>افزودن</span>
         </a>
-        <a href="#" class="bottom-nav-item">
-            <i class='bx bx-list-ul text-2xl'></i> <!-- List Icon -->
-            <span class="text-xs">لیست</span>
+        <a href="#orders-channel" class="bottom-nav-item">
+            <i class='bx bx-list-ul'></i>
+            <span>لیست</span>
         </a>
-        <a href="#" class="bottom-nav-item">
-            <i class='bx bx-user text-2xl'></i> <!-- User Icon -->
-            <span class="text-xs">پروفایل</span>
+        <a href="#channels" class="bottom-nav-item">
+            <i class='bx bx-broadcast'></i>
+            <span>کانال</span>
         </a>
     </footer>
-
-    <!-- Include Boxicons CSS -->
-    <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
 
 </body>
 </html>
