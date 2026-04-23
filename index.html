@@ -3,159 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AddBot</title>
-    <!-- Tailwind CSS -->
+    <title>عضو بگیر بله</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Vazir Font -->
-    <link href="https://cdn.jsdelivr.net/npm/@fontsource/vazir@5.0.8/font-face.css" rel="stylesheet" />
     <style>
+        /* Additional custom styles if needed */
         body {
-            font-family: 'Vazir', sans-serif;
+            font-family: "vazir", sans-serif;
         }
-        .nav-item.active {
-            color: #3b82f6; /* Blue color for active item */
+        .gradient-background {
+            background: linear-gradient(to bottom, #4CAF50, #2E7D32);
+        }
+        .profile-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .profile-circle img {
+            max-width: 60%;
+            max-height: 60%;
+        }
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 0;
+            flex-grow: 1;
+            color: #757575;
+        }
+        .bottom-nav-item.active {
+            color: #1976D2;
+        }
+        .bottom-nav-item i {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+        .main-buttons .btn {
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .btn-warning {
+            background-color: #ff9800;
+            color: white;
+        }
+        .btn-add-member {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-continue {
+            background-color: #1976D2;
+            color: white;
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
+<body class="bg-gray-100">
 
-    <!-- Top Bar -->
-    <header class="bg-white shadow-md sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+    <!-- Header -->
+    <header class="gradient-background text-white p-4 shadow-md">
+        <div class="flex justify-between items-center mb-3">
             <div class="flex items-center">
-                <!-- App Logo Placeholder -->
-                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
-                    AB
+                <!-- Logo Placeholder -->
+                <div class="w-8 h-8 bg-white rounded-full mr-2 flex items-center justify-center">
+                    <span class="text-green-600 font-bold text-sm">B</span>
                 </div>
-                <h1 class="text-xl font-bold text-gray-800">AddBot</h1>
+                <h1 class="text-xl font-bold">عضو بگیر بله</h1>
             </div>
-            <!-- Add any top bar icons here if needed, e.g., notifications, settings -->
-            <div>
-                <button class="text-gray-500 hover:text-gray-700 focus:outline-none">
-                    <!-- Example Icon: Bell for notifications -->
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.5 3H13a2 2 0 01-2-2V9a2 2 0 012-2h5l-1.5-3H9a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2z"></path></svg>
-                </button>
+            <div class="flex space-x-4">
+                <button class="text-lg">کانال</button>
+                <button class="text-lg font-semibold border-b-2 border-white pb-1">گروه</button>
+                <button class="text-lg">کامنت</button>
             </div>
         </div>
     </header>
 
     <!-- Main Content Area -->
-    <main class="flex-1 overflow-y-auto p-4">
-        <!-- Your existing content like loading screen, balance card, stats card, tips can go here -->
-        <!-- For now, just a placeholder -->
-        <div class="bg-white rounded-lg shadow-lg p-6 text-center">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">به AddBot خوش آمدید!</h2>
-            <p class="text-gray-600">محتوای اصلی اپلیکیشن شما در اینجا قرار خواهد گرفت.</p>
-            <!-- Example placeholder content -->
-            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-blue-50 p-4 rounded-md border border-blue-200">
-                    <p class="text-sm text-blue-800">اینجا کارت موجودی شما نمایش داده می‌شود.</p>
-                </div>
-                <div class="bg-green-50 p-4 rounded-md border border-green-200">
-                    <p class="text-sm text-green-800">اینجا کارت آمار شما نمایش داده می‌شود.</p>
-                </div>
+    <main class="p-4">
+
+        <!-- Profile Section -->
+        <section class="text-center mb-6">
+            <div class="profile-circle mx-auto mb-2">
+                <!-- Placeholder for Profile Image -->
+                <img src="https://img.icons8.com/material-sharp/24/000000/user.png" alt="Profile Icon">
             </div>
-            <div class="mt-6 bg-yellow-50 p-4 rounded-md border border-yellow-200">
-                <p class="text-sm text-yellow-800">اینجا بخش نکات و توصیه‌ها قرار می‌گیرد.</p>
+            <p class="text-lg font-semibold text-gray-800">mezonemaleka</p>
+        </section>
+
+        <!-- Settings Options -->
+        <section class="bg-white p-4 rounded-lg shadow-md mb-6">
+            <h2 class="text-lg font-bold mb-3 text-gray-700">تنظیمات</h2>
+            <div class="flex items-center justify-between mb-3">
+                <span>نمایش عکس پروفایل</span>
+                <input type="checkbox" class="toggle-checkbox">
             </div>
-        </div>
+            <div class="flex items-center justify-between">
+                <span>بی‌صدا کردن</span>
+                <input type="checkbox" class="toggle-checkbox">
+            </div>
+        </section>
+
+        <!-- Main Action Buttons -->
+        <section class="main-buttons text-center">
+            <button class="btn btn-warning w-full mb-3 flex items-center justify-center">
+                <i class='bx bx-bell text-xl mr-2'></i> <!-- Bell Icon -->
+                <span>هشدار</span>
+            </button>
+            <button class="btn btn-add-member w-full mb-3 flex items-center justify-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                <i class='bx bx-user-plus text-xl mr-2'></i> <!-- User Plus Icon -->
+                <span>افزودن عضو</span>
+            </button>
+            <button class="btn btn-continue w-full flex items-center justify-center">
+                <i class='bx bx-right-arrow-alt text-xl mr-2'></i> <!-- Right Arrow Icon -->
+                <span>ادامه</span>
+            </button>
+        </section>
+
     </main>
 
-    <!-- Navigation Bar -->
-    <nav class="bg-white shadow-inner sticky bottom-0 z-50">
-        <div class="flex justify-around items-center h-16 px-2">
-            <!-- Nav Item 1: سکه بگیر (Get Coin) -->
-            <a href="#" class="nav-item flex flex-col items-center justify-center w-full h-full hover:text-blue-600 active" id="nav-get-coin">
-                <!-- SVG Icon for Get Coin (Bag/Coin) -->
-                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 107 113.937V11a2.89 2.89 0 012.915-2.915h0A2.89 2.89 0 0113 11v0c0 1.608-1.307 2.915-2.915 2.915h0A2.89 2.89 0 017 11v2.063C4.077 11.753 2 13.797 2 17a6 6 0 1012 0c0-1.608-1.307-2.915-2.915-2.915h0A2.89 2.89 0 0113 11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 7h4"></path></svg>
-                <span class="text-xs font-medium">کیسه سکه</span>
-            </a>
+    <!-- Bottom Navigation Bar -->
+    <footer class="fixed bottom-0 left-0 right-0 bg-white shadow-inner p-2 flex justify-around border-t border-gray-200">
+        <a href="#" class="bottom-nav-item active">
+            <i class='bx bxs-coin text-2xl'></i> <!-- Coin Icon -->
+            <span class="text-xs">سکه بگیر</span>
+        </a>
+        <a href="#" class="bottom-nav-item">
+            <i class='bx bx-cart text-2xl'></i> <!-- Cart Icon -->
+            <span class="text-xs">سبد خرید</span>
+        </a>
+        <a href="#" class="bottom-nav-item">
+            <i class='bx bx-user-plus text-2xl'></i> <!-- User Plus Icon -->
+            <span class="text-xs">افزودن عضو</span>
+        </a>
+        <a href="#" class="bottom-nav-item">
+            <i class='bx bx-list-ul text-2xl'></i> <!-- List Icon -->
+            <span class="text-xs">لیست</span>
+        </a>
+        <a href="#" class="bottom-nav-item">
+            <i class='bx bx-user text-2xl'></i> <!-- User Icon -->
+            <span class="text-xs">پروفایل</span>
+        </a>
+    </footer>
 
-            <!-- Nav Item 2: خرید سکه (Buy Coin) -->
-            <a href="#" class="nav-item flex flex-col items-center justify-center w-full h-full hover:text-blue-600" id="nav-buy-coin">
-                <!-- SVG Icon for Buy Coin (Cart/Shop) -->
-                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l.4 2M9 20h10a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v11a2 2 0 002 2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 22a2 2 0 100-4 2 2 0 000 4zm-6 0a2 2 0 100-4 2 2 0 000 4z"></path></svg>
-                <span class="text-xs font-medium">خرید سکه</span>
-            </a>
-
-            <!-- Nav Item 3: سفارش جدید (New Order) -->
-            <a href="#" class="nav-item flex flex-col items-center justify-center w-full h-full hover:text-blue-600" id="nav-new-order">
-                <!-- SVG Icon for New Order (Plus/Add) -->
-                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                <span class="text-xs font-medium">سفارش جدید</span>
-            </a>
-
-            <!-- Nav Item 4: لیست سفارشات (Order List) -->
-            <a href="#" class="nav-item flex flex-col items-center justify-center w-full h-full hover:text-blue-600" id="nav-order-list">
-                <!-- SVG Icon for Order List (List/History) -->
-                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10v-3l4 4-4 4v-3H3v-4z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 17a2 2 0 100-4 2 2 0 000 4z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11a2 2 0 100-4 2 2 0 000 4z"></path></svg>
-                <span class="text-xs font-medium">سفارشات</span>
-            </a>
-
-            <!-- Nav Item 5: پشتیبانی (Support) -->
-            <a href="#" class="nav-item flex flex-col items-center justify-center w-full h-full hover:text-blue-600" id="nav-support">
-                <!-- SVG Icon for Support (Question Mark/Headset) -->
-                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c-.546.914-.787 1.968-.787 3 0 2.42.712 4.638 1.924 6.351.458.682.963 1.307 1.538 1.797l.005.004a2.417 2.417 0 002.542.004l.005-.004a8.165 8.165 0 001.538-1.797c1.212-1.714 1.924-3.932 1.924-6.351 0-1.032-.242-2.085-.787-3M8.228 9a4.187 4.187 0 00-2.565-3.227 1.187 1.187 0 00-1.506 1.232 4.203 4.203 0 00-.267 2.357 4.202 4.202 0 00.267 2.357 1.187 1.187 0 001.506 1.232A4.187 4.187 0 008 12m0-3v2m0-3v-2"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
-                <span class="text-xs font-medium">پشتیبانی</span>
-            </a>
-        </div>
-    </nav>
-
-    <script>
-        // Simple JavaScript to handle active nav item
-        document.addEventListener('DOMContentLoaded', function() {
-            const navItems = document.querySelectorAll('.nav-item');
-            const currentUrl = window.location.href; // Or a more specific way to identify the current page
-
-            navItems.forEach(item => {
-                // Basic check: if the item's ID or text somehow matches the current page context
-                // In a real app, you'd have more robust routing or page identification
-                if (item.id === 'nav-get-coin') { // Example: Assuming the first item is the default active page
-                    item.classList.add('active');
-                    item.querySelector('span').classList.add('text-blue-600'); // Ensure text is also colored
-                }
-
-                item.addEventListener('click', function(event) {
-                    event.preventDefault(); // Prevent default link behavior
-
-                    // Remove active class from all items
-                    navItems.forEach(nav => {
-                        nav.classList.remove('active');
-                        nav.querySelector('span').classList.remove('text-blue-600');
-                    });
-
-                    // Add active class to the clicked item
-                    this.classList.add('active');
-                    this.querySelector('span').classList.add('text-blue-600');
-
-                    // Here you would typically handle the routing or content change based on the clicked item
-                    // For example:
-                    // if (this.id === 'nav-buy-coin') {
-                    //     loadBuyCoinPage();
-                    // } else if (this.id === 'nav-new-order') {
-                    //     loadNewOrderPage();
-                    // }
-                    // ... etc.
-                    console.log(`Navigating to: ${this.querySelector('span').textContent}`);
-                });
-            });
-
-            // If you have a real routing system, you'd uncomment and adapt this:
-            // Highlight the active link based on the current URL
-            // navItems.forEach(item => {
-            //     if (item.href && currentUrl.includes(item.getAttribute('href'))) {
-            //         item.classList.add('active');
-            //         item.querySelector('span').classList.add('text-blue-600');
-            //     }
-            // });
-        });
-
-        // Placeholder for splash screen logic if needed (can be more complex)
-        document.addEventListener('DOMContentLoaded', () => {
-            // Assuming the splash screen was handled on initial load and is now gone
-            // If you need to re-trigger it or manage its visibility, add logic here.
-        });
-    </script>
+    <!-- Include Boxicons CSS -->
+    <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
 
 </body>
 </html>
