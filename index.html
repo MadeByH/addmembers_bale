@@ -3,347 +3,635 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عضو بگیر بله</title>
+    <title>عضو بگیر</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <style>
-        /* استایل‌های سفارشی بیشتر در صورت نیاز */
+        /* استایل‌های سفارشی */
         body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            margin: 0;
-            background-color: #f4f4f4; /* رنگ پس‌زمینه ملایم‌تر */
+            font-family: 'Vazirmatn', sans-serif; /* فونت وزیرمتن برای فارسی */
         }
-        main {
-            flex: 1;
-            padding-bottom: 100px; /* فضای کافی برای نوار ناوبری پایین */
-            overflow-y: auto; /* اسکرول عمودی در صورت نیاز */
-        }
-        .hidden {
-            display: none !important;
-        }
-        /* استایل برای نوار ناوبری بالا */
         .top-nav {
-            background-color: #ffffff;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 10px 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 10px 20px;
+            background-color: #ffffff; /* رنگ پس‌زمینه سفید */
+            border-bottom: 1px solid #e0e0e0; /* خط جداکننده */
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            height: 60px; /* ارتفاع ثابت برای نوار بالا */
         }
-        .top-nav .logo-title {
+        .top-nav .logo img {
+            height: 35px; /* اندازه لوگو */
+            margin-left: 10px; /* فاصله از متن */
+        }
+        .top-nav .nav-title {
+            font-size: 1.25rem; /* اندازه فونت عنوان */
+            font-weight: bold;
+            color: #333; /* رنگ متن تیره */
+        }
+        .top-nav .user-balance {
+            background-color: #f0f0f0;
+            padding: 8px 15px;
+            border-radius: 20px;
             display: flex;
             align-items: center;
+            font-weight: bold;
+            color: #555;
         }
-        .top-nav .logo {
-            font-size: 28px;
-            margin-left: 10px;
-            color: #3b82f6;
+        .top-nav .user-balance i {
+            margin-left: 8px;
+            color: #FFD700; /* رنگ طلایی برای آیکون سکه */
         }
-        .top-nav h1 {
-            font-size: 20px;
-            font-weight: 600;
-            color: #333;
+
+        #main-content {
+            padding-top: 70px; /* فضای کافی برای نوار بالا */
+            padding-bottom: 80px; /* فضای کافی برای نوار پایین */
+            overflow-y: auto;
+            height: calc(100vh - 60px - 80px); /* ارتفاع محتوای اصلی */
+            position: relative; /* برای position: absolute در بخش پروفایل */
         }
-        .top-nav .balance {
-            font-size: 16px;
-            font-weight: 500;
-            color: #10b981; /* رنگ سبز برای موجودی */
+
+        .profile-header {
+            text-align: center;
+            padding: 30px 20px;
+            background-color: #ffffff; /* پس‌زمینه سفید برای هدر پروفایل */
+            border-bottom: 1px solid #eee;
+        }
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 3px solid #d6249f; /* رنگ شبیه اینستاگرام */
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #262626;
+            margin-bottom: 5px;
+        }
+        .profile-status {
+            font-size: 0.9rem;
+            color: #8e8e8e;
+            margin-bottom: 20px;
+        }
+        .profile-buttons .btn {
+            background-color: #0095f6;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 0 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+         .profile-buttons .btn-secondary {
+            background-color: #efefef;
+            color: #262626;
+            border: 1px solid #dbdbdb;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
             display: flex;
+            justify-content: space-around;
             align-items: center;
+            background-color: #ffffff;
+            padding: 10px 0;
+            border-top: 1px solid #e0e0e0;
+            z-index: 1000;
+            height: 70px; /* ارتفاع بیشتر برای نوار پایین */
         }
-        .top-nav .balance i {
-            font-size: 20px;
-            margin-left: 5px;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- نوار ناوبری بالا (با نمایش سکه) -->
-    <header class="top-nav sticky top-0 z-50">
-        <div class="logo-title">
-            <i class='bx bxl-telegram logo'></i>
-            <h1 class="font-bold">عضو بگیر بله</h1>
-        </div>
-        <div class="balance">
-            <i class='bx bxs-coin-stack'></i>
-            <span id="user-balance">1000</span> سکه
-        </div>
-    </header>
-
-    <main id="main-content">
-        <!-- بخش پروفایل -->
-        <section id="profile" class="p-4">
-            <div class="flex flex-col items-center text-center">
-                <div class="relative w-32 h-32 mb-4">
-                    <img src="[/mnt/data/placeholder-avatar.png"](https://storage.gapgpt.app/media/code_interpreter/4c497cf8-04d7-43e1-b042-1a917ade047a/placeholder-avatar.png%22) alt="Profile Picture" class="w-32 h-32 rounded-full object-cover border-4 border-blue-500 mx-auto">
-                    <span class="absolute bottom-0 right-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full flex items-center">
-                        <i class='bx bxs-circle bx-xs'></i> آنلاین
-                    </span>
-                </div>
-                <h2 class="text-2xl font-bold text-gray-800">mezonemaleka</h2>
-                <p class="text-gray-500 mb-4">آخرین فعالیت: امروز</p>
-                <div class="flex justify-center space-x-4 mt-4">
-                    <button class="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                        <i class='bx bx-history bx-sm mr-2'></i> تاریخچه
-                    </button>
-                    <button class="flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg shadow hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                        <i class='bx bx-edit bx-sm mr-2'></i> ویرایش پروفایل
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- بخش تنظیمات (مخفی در ابتدا) -->
-        <section id="orders" class="hidden p-4">
-            <h2 class="text-2xl font-bold mb-4 text-gray-800">تنظیمات</h2>
-            <div class="bg-white p-4 rounded-lg shadow mb-4">
-                <div class="flex justify-between items-center mb-3">
-                    <span>نمایش عکس پروفایل</span>
-                    <label class="switch">
-                        <input type="checkbox" checked>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span>نوتیفیکیشن‌ها</span>
-                     <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
-             <h3 class="text-lg font-semibold mb-3 text-gray-700">تنظیمات نمایش</h3>
-             <div class="bg-white p-4 rounded-lg shadow mb-4">
-                 <div class="flex justify-between items-center mb-3">
-                     <span>حالت تاریک (Night Mode)</span>
-                     <label class="switch">
-                         <input type="checkbox">
-                         <span class="slider round"></span>
-                     </label>
-                 </div>
-             </div>
-        </section>
-
-        <!-- بخش اقدامات اصلی (مخفی در ابتدا) -->
-        <section id="new-order" class="hidden p-4">
-            <h2 class="text-2xl font-bold mb-4 text-gray-800">اقدامات سریع</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button class="main-action-button">
-                    <i class='bx bxs-bell-ring bx-md'></i>
-                    <span>هشدار</span>
-                </button>
-                <button class="main-action-button" onclick="alert('شروع فرآیند افزودن عضو...')">
-                    <i class='bx bxs-user-plus bx-md'></i>
-                    <span>افزودن عضو</span>
-                </button>
-                <button class="main-action-button" onclick="alert('ادامه عملیات...')">
-                    <i class='bx bx-log-in-circle bx-md'></i>
-                    <span>ادامه</span>
-                </button>
-            </div>
-             <div class="mt-6 p-4 bg-blue-100 border-l-4 border-blue-500 text-blue-700 rounded-lg shadow" role="alert">
-                 <p class="font-bold mb-2">راهنمای اقدامات</p>
-                 <p>از این بخش می‌توانید برای انجام سریع کارهای مورد نیاز خود استفاده کنید. برای مثال، دکمه "افزودن عضو" فرآیند جدیدی را برای اضافه کردن اعضای جدید به کانال یا گروه شما آغاز می‌کند.</p>
-             </div>
-        </section>
-
-        <!-- بخش کانال سفارشات (مخفی در ابتدا) -->
-        <section id="store" class="hidden p-4">
-            <h2 class="text-2xl font-bold mb-4 text-gray-800">سفارشات</h2>
-            <div class="text-center py-10">
-                <i class='bx bx-info-circle text-gray-400 text-5xl mb-3'></i>
-                <p class="text-gray-500">کانال یا لیست سفارشی برای نمایش وجود ندارد.</p>
-                <p class="text-gray-400 text-sm mt-2">به زودی اینجا لیست سفارشات شما نمایش داده خواهد شد.</p>
-                 <button class="mt-4 px-5 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400">
-                    <i class='bx bx-plus-circle bx-sm mr-2'></i> ثبت سفارش جدید
-                </button>
-            </div>
-        </section>
-
-         <!-- بخش کانال ها (نمونه، مخفی در ابتدا) -->
-        <section id="mainmenu" class="hidden p-4">
-            <h2 class="text-2xl font-bold mb-4 text-gray-800">کانال‌ها</h2>
-            <div class="text-center py-10">
-                <i class='bx bx-broadcast text-gray-400 text-5xl mb-3'></i>
-                <p class="text-gray-500">لیست کانال‌های شما</p>
-                <p class="text-gray-400 text-sm mt-2">این بخش برای نمایش کانال‌هایی که مدیریت می‌کنید یا عضو آن‌ها هستید، استفاده خواهد شد.</p>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- نوار ناوبری پایین -->
-    <footer class="fixed bottom-0 left-0 right-0 w-full bg-white shadow-md flex justify-around items-center z-50 border-t border-gray-200 h-20">
-        <a href="#profile" class="bottom-nav-item flex flex-col items-center justify-center w-full h-full text-gray-600 hover:text-blue-500 transition duration-150 ease-in-out">
-            <i class='bx bx-user bx-sm'></i>
-            <span class="text-xs mt-1">پروفایل</span>
-        </a>
-        <a href="#orders" class="bottom-nav-item flex flex-col items-center justify-center w-full h-full text-gray-600 hover:text-blue-500 transition duration-150 ease-in-out">
-            <i class='bx bx-cog bx-sm'></i>
-            <span class="text-xs mt-1">سفارشات</span>
-        </a>
-        <a href="#new-order" class="bottom-nav-item flex flex-col items-center justify-center w-full h-full text-gray-600 hover:text-blue-500 transition duration-150 ease-in-out">
-            <i class='bx bx-plus-circle bx-sm'></i>
-            <span class="text-xs mt-1">سفارش جدید</span>
-        </a>
-        <a href="#store" class="bottom-nav-item flex flex-col items-center justify-center w-full h-full text-gray-600 hover:text-blue-500 transition duration-150 ease-in-out">
-            <i class='bx bx-list-ul bx-sm'></i>
-            <span class="text-xs mt-1">فروشگاه</span>
-        </a>
-         <a href="#mainmenu" class="bottom-nav-item flex flex-col items-center justify-center w-full h-full text-gray-600 hover:text-blue-500 transition duration-150 ease-in-out">
-            <i class='bx bx-broadcast bx-sm'></i>
-            <span class="text-xs mt-1">سکه بگیر</span>
-        </a>
-    </footer>
-
-    <!-- استایل برای دکمه های سفارشی (تگ سوئیچ) -->
-    <style>
-        .switch {
-          position: relative;
-          display: inline-block;
-          width: 50px;
-          height: 24px;
-        }
-        .switch input {display:none;}
-        .slider {
-          position: absolute;
-          cursor: pointer;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: #ccc;
-          -webkit-transition: .4s;
-          transition: .4s;
-        }
-        .slider:before {
-          position: absolute;
-          content: "";
-          height: 16px;
-          width: 16px;
-          left: 4px;
-          bottom: 4px;
-          background-color: white;
-          -webkit-transition: .4s;
-          transition: .4s;
-        }
-        input:checked + .slider {
-          background-color: #2196F3;
-        }
-        input:focus + .slider {
-          box-shadow: 0 0 1px #2196F3;
-        }
-        .slider:before {
-          -webkit-transform: translateX(26px);
-          -ms-transform: translateX(26px);
-          transform: translateX(26px);
-        }
-        .slider.round {
-          border-radius: 34px;
-        }
-        .slider.round:before {
-          border-radius: 50%;
-        }
-        /* استایل برای دکمه های Main Actions */
-        .main-action-button {
+        .bottom-nav .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px 15px;
+            text-decoration: none;
+            color: #8e8e8e;
+            font-size: 0.75rem;
+            flex-grow: 1;
+            padding: 5px 0;
+            transition: color 0.3s ease;
+        }
+        .bottom-nav .nav-item i {
+            font-size: 1.5rem; /* اندازه بزرگتر آیکون */
+            margin-bottom: 5px;
+        }
+        .bottom-nav .nav-item.active {
+            color: #262626; /* رنگ فعال */
+            font-weight: bold;
+        }
+        .bottom-nav .nav-item:hover {
+            color: #262626;
+        }
+
+        /* استایل‌های مربوط به بخش‌های دیگر */
+        .section {
+            display: none; /* همه بخش‌ها در ابتدا مخفی */
+            padding: 20px;
+            background-color: #f9f9f9;
+            min-height: calc(100vh - 60px - 80px); /* ارتفاع بخش‌ها */
+        }
+        .section.active {
+            display: block; /* بخش فعال نمایش داده شود */
+        }
+
+        /* استایل‌های سفارشی برای بخش سکه گیری */
+        .coin-section .coin-balance-large {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #FFD700;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .coin-section .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .coin-section .action-buttons .btn-primary {
+            background-color: #4CAF50; /* سبز */
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+        }
+        .coin-section .action-buttons .btn-secondary {
+            background-color: #f44336; /* قرمز */
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+        }
+        .coin-section .order-list-header {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .coin-section .channel-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
             background-color: #ffffff;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            color: #3b82f6; /* رنگ آیکون و متن */
-            font-weight: 500;
-            cursor: pointer;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .main-action-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 10px rgba(59, 130, 246, 0.2);
+        .coin-section .channel-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-left: 15px;
+            border: 2px solid #eee;
         }
-        .main-action-button i {
-            font-size: 28px; /* اندازه بزرگتر آیکون */
+        .coin-section .channel-item .channel-info {
+            flex-grow: 1;
+        }
+        .coin-section .channel-info .channel-name {
+            font-weight: bold;
+            color: #262626;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .coin-section .channel-info .channel-type {
+            font-size: 0.8rem;
+            color: #8e8e8e;
+        }
+         .coin-section .channel-item .order-status {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #FF9800; /* نارنجی */
+        }
+
+        /* استایل‌های سفارشی برای بخش فروشگاه */
+        .store-section .package-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        .store-section .package-item {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .store-section .package-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+        .store-section .package-item .package-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #FFD700;
+        }
+        .store-section .package-item .package-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .store-section .package-item .package-price {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #4CAF50; /* قیمت سبز */
+            margin-bottom: 15px;
+        }
+        .store-section .package-item .buy-button {
+            background-color: #2196F3; /* آبی */
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: block;
+            width: 100%;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+        .store-section .package-item .buy-button:hover {
+            background-color: #1976D2;
+        }
+
+        /* استایل‌های سفارشی برای بخش سفارشات */
+        .orders-section .order-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .orders-section .order-item {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .orders-section .order-item .order-details {
+            flex-grow: 1;
+            margin-left: 15px;
+        }
+        .orders-section .order-item .order-id {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+        .orders-section .order-item .order-channel {
+            font-size: 0.9rem;
+            color: #8e8e8e;
             margin-bottom: 8px;
         }
-        .main-action-button span {
-            font-size: 14px;
+        .orders-section .order-item .order-status {
+            font-size: 0.9rem;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
         }
-        /* اطمینان از اینکه main قابلیت اسکرول دارد */
-        #main-content {
-            overflow-y: auto;
-            height: calc(100vh - 80px - 80px); /* ارتفاع کل - هدر - فوتر */
+        .orders-section .order-item .status-pending { color: #FF9800; background-color: #fff3e0; } /* نارنجی */
+        .orders-section .order-item .status-completed { color: #4CAF50; background-color: #e8f5e9; } /* سبز */
+        .orders-section .order-item .status-failed { color: #f44336; background-color: #ffebee; } /* قرمز */
+
+        .orders-section .new-order-button {
+            display: block;
+            width: fit-content;
+            margin: 30px auto 0;
+            background-color: #007bff; /* آبی */
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-decoration: none;
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+            transition: background-color 0.3s ease;
         }
+        .orders-section .new-order-button:hover {
+            background-color: #0056b3;
+        }
+
+         /* استایل‌های سفارشی برای بخش اصلی اقدامات */
+        .main-actions-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 60px - 80px); /* ارتفاع کامل صفحه محتوا */
+            padding: 20px;
+        }
+        .main-actions-section .action-button {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            color: #333;
+            padding: 18px 35px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            width: 80%;
+            max-width: 350px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.07);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; /* فاصله بین آیکون و متن */
+        }
+        .main-actions-section .action-button i {
+            font-size: 1.6rem;
+        }
+        .main-actions-section .action-button:hover {
+            background-color: #e0e0e0;
+            transform: translateY(-3px);
+        }
+
+        /* استایل‌های سفارشی برای بخش کانال ها */
+        .channels-section .channel-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .channels-section .channel-item {
+            background-color: #ffffff;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .channels-section .channel-item img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .channels-section .channel-item .channel-details {
+            flex-grow: 1;
+        }
+        .channels-section .channel-item .channel-name {
+            font-weight: bold;
+            color: #262626;
+            display: block;
+            margin-bottom: 3px;
+        }
+        .channels-section .channel-item .channel-type {
+            font-size: 0.8rem;
+            color: #8e8e8e;
+        }
+
     </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Top Navigation -->
+    <header class="top-nav">
+        <div class="flex items-center">
+            <!-- Logo (Image will replace Telegram logo) -->
+            <img src="https://cdn.imgurl.ir/uploads/g529959_Negar_1777016729232.png" alt="Logo" class="w-auto h-8 mr-3">
+            <span class="nav-title">عضو بگیر</span>
+        </div>
+        <div class="user-balance">
+            <i class='bx bxs-coin'></i>
+            <span id="user-balance">1000</span> سکه
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="main-content">
+
+        <!-- Profile Section -->
+        <div id="profile" class="section active">
+            <div class="profile-header">
+                <img src="[/mnt/data/placeholder-avatar.png"](https://storage.gapgpt.app/media/code_interpreter/4c497cf8-04d7-43e1-b042-1a917ade047a/placeholder-avatar.png%22) alt="Profile Avatar" class="profile-avatar">
+                <h2 class="profile-name">نام کاربر نمونه</h2>
+                <p class="profile-status">آنلاین</p>
+                <div class="profile-buttons">
+                    <a href="#" class="btn">تاریخچه</a>
+                    <a href="#" class="btn btn-secondary">ویرایش پروفایل</a>
+                </div>
+            </div>
+            <!-- Add more profile details here if needed -->
+        </div>
+
+        <!-- Coin Earning Section -->
+        <div id="coin-earning" class="section">
+            <div class="coin-balance-large">
+                <i class='bx bxs-coin'></i> 1000
+            </div>
+            <div class="action-buttons">
+                <button class="btn-primary"><i class='bx bx-wallet-alt'></i> دریافت سکه</button>
+                <button class="btn-secondary"><i class='bx bx-receipt'></i> گزارش سفارش</button>
+            </div>
+
+            <div class="channel-item">
+                <img src="[/mnt/data/placeholder-avatar.png"](https://storage.gapgpt.app/media/code_interpreter/4c497cf8-04d7-43e1-b042-1a917ade047a/placeholder-avatar.png%22) alt="Channel Avatar">
+                <div class="channel-info">
+                    <span class="channel-name">نام کانال نمونه</span>
+                    <span class="channel-type">کانال</span>
+                </div>
+                <span class="order-status">در انتظار</span>
+            </div>
+            <button class="rounded-full bg-blue-500 text-white font-bold py-3 px-6 mt-5 w-full">سفارش بعدی</button>
+            <!-- Placeholder for more complex order/channel UI -->
+            <h3 class="order-list-header mt-8">آخرین سفارشات</h3>
+             <div class="channel-item">
+                <img src="[/mnt/data/placeholder-avatar.png"](https://storage.gapgpt.app/media/code_interpreter/4c497cf8-04d7-43e1-b042-1a917ade047a/placeholder-avatar.png%22) alt="Channel Avatar">
+                <div class="channel-info">
+                    <span class="channel-name">کانال دوم</span>
+                    <span class="channel-type">گروه</span>
+                </div>
+                <span class="order-status status-completed">تکمیل شده</span>
+            </div>
+             <div class="channel-item">
+                <img src="[/mnt/data/placeholder-avatar.png"](https://storage.gapgpt.app/media/code_interpreter/4c497cf8-04d7-43e1-b042-1a917ade047a/placeholder-avatar.png%22) alt="Channel Avatar">
+                <div class="channel-info">
+                    <span class="channel-name">کانال سوم</span>
+                    <span class="channel-type">کانال</span>
+                </div>
+                <span class="order-status status-pending">در انتظار</span>
+            </div>
+        </div>
+
+
+        <!-- Store Section -->
+        <div id="store" class="section">
+            <h2 class="text-2xl font-bold text-center mb-6">فروشگاه سکه</h2>
+            <div class="package-list">
+                <div class="package-item">
+                    <i class='bx bx-package package-icon'></i>
+                    <h3 class="package-name">بسته ۱۰,۰۰۰ سکه</h3>
+                    <p class="package-price">۱۰۰,۰۰۰ تومان</p>
+                    <a href="#" class="buy-button">خرید</a>
+                </div>
+                <div class="package-item">
+                    <i class='bx bx-gift package-icon'></i>
+                    <h3 class="package-name">بسته ۵۰,۰۰۰ سکه</h3>
+                    <p class="package-price">۴۵۰,۰۰۰ تومان</p>
+                    <a href="#" class="buy-button">خرید</a>
+                </div>
+                 <div class="package-item">
+                    <i class='bx bxs-box package-icon'></i>
+                    <h3 class="package-name">بسته ۱۰۰,۰۰۰ سکه</h3>
+                    <p class="package-price">۸۵۰,۰۰۰ تومان</p>
+                    <a href="#" class="buy-button">خرید</a>
+                </div>
+                <!-- Add more packages as needed -->
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div id="orders" class="section">
+            <h2 class="text-2xl font-bold text-center mb-6">سفارشات شما</h2>
+            <div class="order-list">
+                <div class="order-item">
+                    <img src="[/mnt/data/placeholder-avatar.png"](https://storage.gapgpt.app/media/code_interpreter/4c497cf8-04d7-43e1-b042-1a917ade047a/placeholder-avatar.png%22) alt="Channel Avatar" class="w-12 h-12 rounded-full mr-4">
+                    <div class="order-details">
+                        <div class="order-id">#12345</div>
+                        <div class="order-channel">کانال: نام کانال نمونه</div>
+                        <div class="order-status status-completed">تکمیل شده</div>
+                    </div>
+                </div>
+                 <div class="order-item">
+                    <img src="[/mnt/data/placeholder-avatar.png"](https://storage.gapgpt.app/media/code_interpreter/4c497cf8-04d7-43e1-b042-1a917ade047a/placeholder-avatar.png%22) alt="Channel Avatar" class="w-12 h-12 rounded-full mr-4">
+                    <div class="order-details">
+                        <div class="order-id">#12346</div>
+                        <div class="order-channel">گروه: نام گروه نمونه</div>
+                        <div class="order-status status-pending">در انتظار</div>
+                    </div>
+                </div>
+                 <div class="order-item">
+                    <img src="[/mnt/data/placeholder-avatar.png"](https://storage.gapgpt.app/media/code_interpreter/4c497cf8-04d7-43e1-b042-1a917ade047a/placeholder-avatar.png%22) alt="Channel Avatar" class="w-12 h-12 rounded-full mr-4">
+                    <div class="order-details">
+                        <div class="order-id">#12347</div>
+                        <div class="order-channel">کانال: کانال دیگر</div>
+                        <div class="order-status status-failed">ناموفق</div>
+                    </div>
+                </div>
+                <!-- Add more orders -->
+            </div>
+            <a href="#" class="new-order-button">ثبت سفارش جدید</a>
+        </div>
+
+        <!-- Channels Section -->
+        <div id="channels" class="section">
+            <h2 class="text-2xl font-bold text-center mb-6">کانال‌ها و گروه‌ها</h2>
+             <div class="channel-list">
+                <div class="channel-item">
+                    <img src="[/mnt/data/placeholder-avatar.png"](https://storage.gapgpt.app/media/code_interpreter/4c497cf8-04d7-43e1-b042-1a917ade047a/placeholder-avatar.png%22) alt="Channel Avatar">
+                    <div class="channel-details">
+                        <span class="channel-name">کانال اول</span>
+                        <span class="channel-type">کانال</span>
+                    </div>
+                </div>
+                 <div class="channel-item">
+                    <img src="[/mnt/data/placeholder-avatar.png"](https://storage.gapgpt.app/media/code_interpreter/4c497cf8-04d7-43e1-b042-1a917ade047a/placeholder-avatar.png%22) alt="Channel Avatar">
+                    <div class="channel-details">
+                        <span class="channel-name">گروه مهم</span>
+                        <span class="channel-type">گروه</span>
+                    </div>
+                </div>
+                 <div class="channel-item">
+                    <img src="[/mnt/data/placeholder-avatar.png"](https://storage.gapgpt.app/media/code_interpreter/4c497cf8-04d7-43e1-b042-1a917ade047a/placeholder-avatar.png%22) alt="Channel Avatar">
+                    <div class="channel-details">
+                        <span class="channel-name">کانال خبری</span>
+                        <span class="channel-type">کانال</span>
+                    </div>
+                </div>
+                <!-- Add more channels -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <footer class="bottom-nav">
+        <a href="#" class="nav-item active" data-page="profile">
+            <i class='bx bxs-user'></i>
+            <span>پروفایل</span>
+        </a>
+        <a href="#" class="nav-item" data-page="coin-earning">
+            <i class='bx bx-wallet'></i>
+            <span>کسب سکه</span>
+        </a>
+        <a href="#" class="nav-item" data-page="store">
+            <i class='bx bx-store-alt'></i>
+            <span>فروشگاه</span>
+        </a>
+        <a href="#" class="nav-item" data-page="orders">
+            <i class='bx bx-list-ul'></i>
+            <span>سفارشات</span>
+        </a>
+         <a href="#" class="nav-item" data-page="channels">
+            <i class='bx bx-group'></i>
+            <span>کانال‌ها</span>
+        </a>
+    </footer>
 
     <script>
-        // شناسه بخش‌هایی که باید بین آن‌ها جابجا شویم
-        const pages = ['profile', 'orders', 'new-order', 'store', 'mainmenu'];
-        const mainContent = document.getElementById('main-content');
-
-        function navigateTo(pageId) {
-            // همه صفحات را در main مخفی کن
-            pages.forEach(id => {
-                const pageElement = document.getElementById(id);
-                if (pageElement) {
-                    pageElement.classList.add('hidden');
-                }
-            });
-            // صفحه انتخاب شده را نمایش بده
-            const targetPageElement = document.getElementById(pageId);
-            if (targetPageElement) {
-                targetPageElement.classList.remove('hidden');
-            }
-            // اسکرول به بالای صفحه اصلی
-            mainContent.scrollTop = 0;
-        }
-
-        // فعال کردن اسکرول در main-content
-        mainContent.style.height = `calc(100vh - ${document.querySelector('header').offsetHeight}px - ${document.querySelector('footer').offsetHeight}px)`;
-
-        // اضافه کردن گوش‌به‌زنگ (Event Listener) به دکمه‌های منو
-        document.querySelectorAll('.bottom-nav-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault(); // جلوگیری از عمل پیش‌فرض لینک
-                const target = item.getAttribute('href').substring(1); // گرفتن شناسه صفحه از href
-                navigateTo(target);
-
-                // فعال کردن کلاس active برای دکمه منوی انتخاب شده
-                document.querySelectorAll('.bottom-nav-item').forEach(navItem => {
-                    navItem.classList.remove('text-blue-500');
-                    navItem.classList.add('text-gray-600');
-                });
-                item.classList.remove('text-gray-600');
-                item.classList.add('text-blue-500');
-            });
-        });
-
-        // نمایش اولیه صفحه پروفایل هنگام بارگذاری صفحه
         document.addEventListener('DOMContentLoaded', () => {
-            // ابتدا همه صفحات را مخفی می‌کنیم
-            pages.forEach(id => {
-                const pageElement = document.getElementById(id);
-                if (pageElement && id !== 'profile') { // به جز پروفایل که باید اول نمایش داده شود
-                    pageElement.classList.add('hidden');
-                }
-            });
-             // فعال کردن استایل دکمه پروفایل در منوی پایین
-            const profileNavItem = document.querySelector('.bottom-nav-item[href="#profile"]');
-            if (profileNavItem) {
-                 document.querySelectorAll('.bottom-nav-item').forEach(navItem => {
-                    navItem.classList.remove('text-blue-500');
-                    navItem.classList.add('text-gray-600');
-                });
-                profileNavItem.classList.remove('text-gray-600');
-                profileNavItem.classList.add('text-blue-500');
+            const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+            const sections = document.querySelectorAll('.section');
+            const userBalanceSpan = document.getElementById('user-balance'); // Get the balance span
+
+            // Function to update balance (example)
+            function updateUserBalance(newBalance) {
+                userBalanceSpan.textContent = newBalance;
             }
+
+            // Show profile by default and set active nav item
+            navigateTo('profile'); // Start with profile page
+
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const pageId = item.getAttribute('data-page');
+                    navigateTo(pageId);
+
+                    // Update active state for nav items
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+                });
+            });
+
+            function navigateTo(pageId) {
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                const targetSection = document.getElementById(pageId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                } else {
+                    console.error("Section not found:", pageId);
+                }
+            }
+
+            // Example: Simulate balance update after some action
+            // setTimeout(() => updateUserBalance(1200), 3000);
+
+             // Dummy data for demonstration (replace with actual data fetching)
+            updateUserBalance(1050); // Set initial balance
         });
     </script>
-
 </body>
 </html>
