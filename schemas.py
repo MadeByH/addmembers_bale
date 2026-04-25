@@ -49,7 +49,7 @@ class AccountBase(BaseModel):
     status: Optional[str] = None
     coins: int = 0
     invitations_count: int = 0
-    vip_status: bool = False
+    vip_status: Optional[str] = None
     gender: Optional[str] = None
     birthdate: Optional[date] = None
     city: Optional[str] = None
