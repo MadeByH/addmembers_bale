@@ -1,7 +1,7 @@
 import asyncio
 import base64
 from pathlib import Path
-from datetime import datetime
+from datetime import timezone
 import time
 
 from fastapi import HTTPException
@@ -270,9 +270,10 @@ class AccountManager:
         """
         async with self.lock:
 
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             dead_ids = []
 
+            updated = False
             for account_id, client in list(self.running.items()):
 
                 stmt = select(models.Account).where(models.Account.id == account_id)
@@ -291,6 +292,8 @@ class AccountManager:
                 # update last_seen
                 account.last_seen = now
                 account.status = "running"
+                updated = True
+            if updated:
                 await db.commit()
 
             # stop dead accounts
