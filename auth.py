@@ -6,6 +6,7 @@ from sqlalchemy.orm import selectinload
 from datetime import datetime, timedelta
 from jose import jwt
 from pathlib import Path
+import json
 import asyncio
 import base64
 import os
@@ -31,6 +32,7 @@ def validate_init_data(init_data: str) -> dict:
 
     data_check_string = "\n".join(
         f"{k}={v[0]}" for k, v in sorted(parsed.items())
+    )
 
     secret_key = hashlib.sha256(BOT_TOKEN.encode()).digest()
 
