@@ -18,9 +18,6 @@ class UserBase(BaseModel):
     bale_user_id: int
     # phone removed from base as it might be optional/specific to creation/update
 
-class UserCreate(UserBase):
-    phone: Optional[str] = None # Explicitly optional for creation
-
 class UserWithAccounts(UserBase): # New schema to include accounts
     id: int
     # phone: Optional[str] = None
@@ -34,7 +31,6 @@ class UserWithAccounts(UserBase): # New schema to include accounts
 # Define User after Account and Order are potentially defined or will be forward declared
 class User(UserBase):
     id: int
-    # phone: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -44,8 +40,8 @@ class User(UserBase):
 
 # --- Schemas for Account model ---
 class AccountBase(BaseModel):
-    is_blocked: bool = True
     phone: Optional[str] = None
+    is_blocked: bool = False
     session_data: Optional[str] = None
     status: Optional[str] = None
     coins: int = 0
@@ -84,10 +80,8 @@ class Account(AccountBase):
 
 # --- Schemas for Order model ---
 class OrderBase(BaseModel):
-    order_type: str
     order_status: str = "pending"
     order_count: int = 1
-    order_details: Dict[str, Any] = Field(default_factory=dict)
     # Assuming username, profile_picture_url, differentiation_factors are part of the order data
     username: Optional[str] = None
     profile_picture_url: Optional[str] = None
@@ -124,7 +118,6 @@ class Order(OrderBase):
 # User model potentially referencing Accounts
 class User(UserBase):
     id: int
-    # phone: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     accounts: List[Account] = [] # Reference to the Account schema
@@ -135,6 +128,7 @@ class User(UserBase):
 # Account model potentially referencing User and Orders
 class Account(AccountBase):
     id: int
+    phone: Optional[str] = None
     owner_id: int
     created_at: datetime
     updated_at: datetime
@@ -161,7 +155,6 @@ class Order(OrderBase):
 # To get a user with their accounts, but without deeply nested orders within accounts:
 class UserWithAccountsSummary(UserBase):
     id: int
-    # phone: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     accounts: List[AccountBase] # Only basic account info
@@ -172,6 +165,7 @@ class UserWithAccountsSummary(UserBase):
 # To get an account with its owner and a summary of its orders:
 class AccountWithUserAndOrderSummaries(AccountBase):
     id: int
+    phone: Optional[str] = None
     owner_id: int
     created_at: datetime
     updated_at: datetime
