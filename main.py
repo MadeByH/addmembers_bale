@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse
 
 from .db import get_async_db
 from .useraccounts import account_manager
+from .auth import router as auth_router
 
 
 # ==========================================================
@@ -75,6 +76,8 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+app.include_router(auth_router)
 
 
 # ==========================================================
