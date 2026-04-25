@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse
 
 from .db import AsyncSessionLocal
 import.auth import router as auth_router
+from fastapi.staticfiles import StaticFiles
 
 # ==========================================================
 # BACKGROUND HEARTBEAT LOOP
@@ -76,6 +77,8 @@ app = FastAPI(
 )
 
 app.include_router(auth_router)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 # ==========================================================
