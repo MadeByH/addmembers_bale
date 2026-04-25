@@ -153,7 +153,8 @@
             // تبدیل تاریخ شمسی به میلادی
             const [jy, jm, jd] = birth.split("/").map(Number);
             const g = jalaali.toGregorian(jy, jm, jd);
-            const birth_greg = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(jd).padStart(2, '0')}`;
+            const birth_greg =
+`${g.gy}-${String(g.gm).padStart(2,'0')}-${String(g.gd).padStart(2,'0')}`;
 
             const res = await fetch("/auth/complete-profile", {
                 method: "POST",
