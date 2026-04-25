@@ -97,6 +97,8 @@ class Order(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"), index=True) # اکانت سفارش دهنده
+    order_status: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    order_count: Mapped[int] = mapped_column(Integer, default=1)
     username: Mapped[str] = mapped_column(String(100))
     profile_picture_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     differentiation_factors: Mapped[Optional[str]] = mapped_column(String, nullable=True)
