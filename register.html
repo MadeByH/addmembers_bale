@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>عضویت</title>
+
+    <script src="https://tapi.bale.ai/miniapp.js?3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jalaali-js/dist/jalaali.min.js"></script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .visible {
+            display: block;
+        }
+
+        .input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 8px;
+            background: #1976d2;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- صفحه مرحله ۱ -->
+    <div id="step1" class="page">
+        <h3>ورود / ثبت نام</h3>
+        <input id="phone_input" class="input" type="tel" placeholder="شماره موبایل">
+        <button class="button" onclick="startLogin()">ارسال کد</button>
+    </div>
+
+    <!-- صفحه کد -->
+    <div id="step2" class="page">
+        <h3>کد ارسال شده را وارد کنید</h3>
+        <input id="code_input" class="input" type="text" placeholder="کد">
+        <button class="button" onclick="confirmCode()">تأیید</button>
+    </div>
+
+    <!-- مرحله دوم: پروفایل -->
+    <div id="step_profile" class="page">
+        <h3>تکمیل اطلاعات</h3>
+
+        <select id="gender_input">
+            <option value="male">مرد</option>
+            <option value="female">زن</option>
+        </select>
+
+        <input id="birth_input" class="input" type="text" placeholder="تاریخ تولد شمسی مثل 1379/05/12">
+
+        <select id="city_input"></select>
+
+        <button class="button" onclick="completeProfile()">ادامه</button>
+    </div>
+
+    <!-- صفحه اصلی -->
+    <div id="main" class="page">
+        <h2>خوش آمدید 🎉</h2>
+        <p>ثبت‌نام شما با موفقیت تکمیل شد.</p>
+    </div>
+
+    <script>
+        let initData = null;
+        let tempToken = null;
+        let loginPhone = null;
+
+        function show(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove("visible"));
+            document.getElementById(id).classList.add("visible");
+        }
+
+        async function loadCities() {
+            const cities = await fetch("/static/cities.json").then(r => r.json());
+            const select = document.getElementById("city_input");
+            cities.forEach(c => {
+                let option = document.createElement("option");
+                option.value = c;
+                option.innerText = c;
+                select.appendChild(option);
+            });
+        }
+
+        async function startLogin() {
+            const phone = document.getElementById("phone_input").value.trim();
+            if (!phone) return;
+
+            loginPhone = phone;
+
+            await fetch("/auth/start", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phone })
+            });
+
+            show("step2");
+        }
+
+        async function confirmCode() {
+            const code = document.getElementById("code_input").value.trim();
+
+            const res = await fetch("/auth/confirm", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    phone: loginPhone,
+                    code
+                })
+            });
+
+            const data = await res.json();
+
+            tempToken = data.temp_token;
+
+            show("step_profile");
+        }
+
+        async function completeProfile() {
+            const gender = document.getElementById("gender_input").value;
+            const birth = document.getElementById("birth_input").value;
+            const city = document.getElementById("city_input").value;
+
+            // تبدیل تاریخ شمسی به میلادی
+            const [jy, jm, jd] = birth.split("/").map(Number);
+            const g = jalaali.toGregorian(jy, jm, jd);
+            const birth_greg = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(jd).padStart(2, '0')}`;
+
+            const res = await fetch("/auth/complete-profile", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + tempToken
+                },
+                body: JSON.stringify({
+                    gender,
+                    birthdate: birth_greg,
+                    city
+                })
+            });
+
+            const data = await res.json();
+
+            localStorage.setItem("token", data.token);
+
+            show("main");
+        }
+
+        async function init() {
+            loadCities();
+
+            const web = window.Bale.WebApp;
+            web.ready();
+            web.expand();
+
+            initData = web.initData;
+
+            const res = await fetch("/auth/check", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ init_data: initData })
+            });
+
+            const data = await res.json();
+
+            if (data.has_account) {
+                localStorage.setItem("token", data.token);
+                show("main");
+            } else {
+                show("step1");
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
