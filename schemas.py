@@ -23,7 +23,7 @@ class UserCreate(UserBase):
 
 class UserWithAccounts(UserBase): # New schema to include accounts
     id: int
-    phone: Optional[str] = None
+    # phone: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     accounts: List[Account] = [] # List of Account schemas
@@ -34,7 +34,7 @@ class UserWithAccounts(UserBase): # New schema to include accounts
 # Define User after Account and Order are potentially defined or will be forward declared
 class User(UserBase):
     id: int
-    phone: Optional[str] = None
+    # phone: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -45,6 +45,7 @@ class User(UserBase):
 # --- Schemas for Account model ---
 class AccountBase(BaseModel):
     is_blocked: bool = True
+    phone: Optional[str] = None
     session_data: Optional[str] = None
     status: Optional[str] = None
     coins: int = 0
@@ -54,7 +55,6 @@ class AccountBase(BaseModel):
     birthdate: Optional[date] = None
     city: Optional[str] = None
     last_seen: Optional[datetime] = None
-    phone: Optional[str] = None
 
 class AccountCreate(AccountBase):
     owner_id: int # Required for creation
@@ -124,7 +124,7 @@ class Order(OrderBase):
 # User model potentially referencing Accounts
 class User(UserBase):
     id: int
-    phone: Optional[str] = None
+    # phone: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     accounts: List[Account] = [] # Reference to the Account schema
@@ -161,7 +161,7 @@ class Order(OrderBase):
 # To get a user with their accounts, but without deeply nested orders within accounts:
 class UserWithAccountsSummary(UserBase):
     id: int
-    phone: Optional[str] = None
+    # phone: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     accounts: List[AccountBase] # Only basic account info
