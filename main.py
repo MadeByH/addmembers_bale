@@ -3,10 +3,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
-from .db import get_async_db
-from .useraccounts import account_manager
-from .auth import router as auth_router
-
+from .db import AsyncSessionLocal
+import.auth import router as auth_router
 
 # ==========================================================
 # BACKGROUND HEARTBEAT LOOP
@@ -19,7 +17,7 @@ async def heartbeat_loop():
     """
     while True:
         try:
-            async with get_async_db() as db:
+            async with AsyncSessionLocal() as db:
                 await account_manager.heartbeat(db)
 
         except Exception as e:
@@ -40,7 +38,7 @@ async def lifespan(app: FastAPI):
     # ------------------------------
     # START ALL ACCOUNTS
     # ------------------------------
-    async with get_async_db() as db:
+    async with AsyncSessionLocal() as db:
         await account_manager.start_all(db)
 
     # ------------------------------
@@ -59,7 +57,7 @@ async def lifespan(app: FastAPI):
 
     heartbeat_task.cancel()
 
-    async with get_async_db() as db:
+    async with AsyncSessionLocal() as db:
         # Stop all running accounts safely
         for acc_id in list(account_manager.running.keys()):
             await account_manager.stop(acc_id, db)
