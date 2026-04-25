@@ -9,6 +9,9 @@ from pathlib import Path
 import asyncio
 import base64
 import os
+import hashlib
+import hmac
+from urllib.parse import parse_qs
 
 from aiobale import Client, Dispatcher
 
@@ -19,6 +22,29 @@ from .config import settings
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+
+BOT_TOKEN = settings.BOT_TOKEN
+
+def validate_init_data(init_data: str) -> dict:
+    parsed = parse_qs(init_data, strict_parsing=True)
+    hash_received = parsed.pop("hash")[0]
+
+    data_check_string = "\n".join(
+        f"{k}={v[0]}" for k, v in sorted(parsed.items())
+
+    secret_key = hashlib.sha256(BOT_TOKEN.encode()).digest()
+
+    calculated_hash = hmac.new(
+        secret_key,
+        data_check_string.encode(),
+        hashlib.sha256
+    ).hexdigest()
+
+    if calculated_hash != hash_received:
+        raise Exception("Invalid init data")
+
+    return {k: v[0] for k, v in parsed.items()}
+
 
 # ============================================================
 # JWT
@@ -203,6 +229,37 @@ async def confirm_code(
         access_token=token,
         token_type="bearer"
     )
+
+
+@router.post("/auth/check")
+async def check_user(data: InitDataSchema, db: AsyncSession = Depends(get_async_db)):
+    validated = validate_init_data(data.init_data)
+
+    bale_user = json.loads(validated["user"])
+
+    bale_user_id = bale_user["id"]
+    username = bale_user.get("username")
+    photo = bale_user.get("photo_url")
+
+    user = await db.scalar(
+        select(User).where(User.bale_user_id == bale_user_id)
+    )
+
+    if not user:
+        user = User(bale_user_id=bale_user_id)
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
+    account = await db.scalar(
+        select(Account).where(Account.owner_id == user.id)
+    )
+
+    if account:
+        token = create_jwt(account.id)
+        return {"has_account": True, "token": token}
+
+    return {"has_account": False}
 
 
 # ============================================================
