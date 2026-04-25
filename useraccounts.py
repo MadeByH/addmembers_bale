@@ -12,6 +12,7 @@ from aiobale import Client, Dispatcher
 from aiobale import types
 
 from . import models
+from .db import AsyncSessionLocal
 
 SESSION_DIR = Path("session.bale")
 SESSION_DIR.mkdir(exist_ok=True)
@@ -50,7 +51,8 @@ class AccountManager:
         return True
 
 
-    def attach_handlers(client):
+    @staticmethod
+    def attach_handlers(client: Client):
         dp = client.dispatcher
 
         @dp.message()
@@ -159,7 +161,7 @@ class AccountManager:
             client = Client(dispatcher, session_file=str(session_file))
 
             # optional attach handlers
-            attach_handlers(client)
+            self.attach_handlers(client)
 
             try:
                 await client.start(run_in_background=True)
@@ -236,23 +238,28 @@ class AccountManager:
     # ---------------------------------------------------------
     # START ALL ACCOUNTS
     # ---------------------------------------------------------
-    async def start_all(self, db: AsyncSession):
+    async def start_all(self):
         stmt = select(models.Account).where(
-            models.Account.is_blocked == False,
-            models.Account.session_data != None
-        )
+        models.Account.is_blocked == False,
+        models.Account.session_data != None
+    )
 
-        res = await db.execute(stmt)
-        accounts = res.scalars().all()
+        async with AsyncSessionLocal() as db:
+            res = await db.execute(stmt)
+            accounts = res.scalars().all()
 
         tasks = []
-        for acc in accounts:
-            tasks.append(self.start(acc.id, db))
 
-        if tasks:
-            await asyncio.gather(*tasks)
+        for acc in accounts:
+            tasks.append(self._start_with_new_session(acc.id))
+
+        await asyncio.gather(*tasks)
 
         print(f"🚀 started {len(tasks)} accounts")
+
+    async def _start_with_new_session(self, account_id: int):
+        async with AsyncSessionLocal() as db:
+            await self.start(account_id, db)
 
     # ---------------------------------------------------------
     # HEALTH CHECK / UPDATE STATUS
