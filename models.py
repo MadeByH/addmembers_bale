@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from sqlalchemy import (
-    create_engine,
     Column,
     Integer,
     String,
@@ -12,7 +11,7 @@ from sqlalchemy import (
     ForeignKey,
     Table,
 )
-from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column, sessionmaker
+from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
 
 # --- تعریف Base ---
 class Base(DeclarativeBase):
