@@ -59,7 +59,7 @@ class Account(Base):
     __tablename__ = "accounts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     phone: Mapped[str] = mapped_column(String(20), unique=True, index=True)
     status: Mapped[str] = mapped_column(String(50), default="running")
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
@@ -96,7 +96,7 @@ class Order(Base):
     __tablename__ = "orders"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), index=True) # اکانت سفارش دهنده
+    account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"), index=True) # اکانت سفارش دهنده
     username: Mapped[str] = mapped_column(String(100))
     profile_picture_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     differentiation_factors: Mapped[Optional[str]] = mapped_column(String, nullable=True)
