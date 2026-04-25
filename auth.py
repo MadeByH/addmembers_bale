@@ -262,6 +262,23 @@ async def check_user(data: InitDataSchema, db: AsyncSession = Depends(get_async_
     return {"has_account": False}
 
 
+@router.post("/auth/complete-profile")
+async def complete_profile(
+    data: ProfileSchema,
+    account: Account = Depends(get_current_temp_account),
+    db: AsyncSession = Depends(get_async_db)
+):
+    account.gender = data.gender
+    account.birthdate = data.birthdate
+    account.city = data.city
+
+    await db.commit()
+
+    final_token = create_jwt(account.id)
+
+    return {"token": final_token}
+
+
 # ============================================================
 # ME
 # ============================================================
