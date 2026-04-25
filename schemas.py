@@ -186,6 +186,25 @@ class OrderWithAccountDetails(OrderBase):
     class Config:
         from_attributes = True
 
+
+class StartLoginRequest(BaseModel):
+    phone: str
+    owner_id: int
+
+class StartLoginResponse(BaseModel):
+    ok: bool
+    transaction_hash: str
+    message: str
+
+class ConfirmCodeRequest(BaseModel):
+    phone: str
+    code: str
+
+class TokenData(BaseModel):
+    access_token: str
+    token_type: str
+
+
 # --- Note on Relationships in Pydantic Schemas ---
 # Pydantic schemas typically represent the data structure for API requests/responses.
 # They usually do NOT directly include SQLAlchemy relationship objects (like 'owner', 'joined_accounts', 'participated_orders').
