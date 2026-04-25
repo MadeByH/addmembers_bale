@@ -34,7 +34,11 @@ def validate_init_data(init_data: str) -> dict:
         f"{k}={v[0]}" for k, v in sorted(parsed.items())
     )
 
-    secret_key = hashlib.sha256(BOT_TOKEN.encode()).digest()
+    secret_key = hmac.new(
+BOT_TOKEN.encode(),
+"WebAppData".encode(),
+hashlib.sha256
+).digest()
 
     calculated_hash = hmac.new(
         secret_key,
@@ -233,7 +237,7 @@ async def confirm_code(
     )
 
 
-@router.post("/auth/check")
+@router.post("/check")
 async def check_user(data: InitDataSchema, db: AsyncSession = Depends(get_async_db)):
     validated = validate_init_data(data.init_data)
 
@@ -264,7 +268,7 @@ async def check_user(data: InitDataSchema, db: AsyncSession = Depends(get_async_
     return {"has_account": False}
 
 
-@router.post("/auth/complete-profile")
+@router.post("/complete-profile")
 async def complete_profile(
     data: ProfileSchema,
     account: Account = Depends(get_current_temp_account),
