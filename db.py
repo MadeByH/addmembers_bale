@@ -13,7 +13,7 @@ async_engine = create_async_engine(
     pool_size=20,
     max_overflow=5,
     pool_timeout=30,
-    poolclass=NullPool # فعلا کامنت شده، در صورت نیاز فعال شود
+    # poolclass=NullPool # فعلا کامنت شده، در صورت نیاز فعال شود
 )
 
 AsyncSessionLocal = sessionmaker(
