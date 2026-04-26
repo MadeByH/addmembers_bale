@@ -616,6 +616,11 @@
 
     const initData = web.initData;
 
+    if (!initData) {
+    console.warn("MiniApp initData missing");
+    return;
+}
+                
     const res = await fetch("/auth/check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
