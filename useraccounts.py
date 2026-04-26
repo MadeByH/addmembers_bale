@@ -10,6 +10,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from aiobale import Client, Dispatcher
 from aiobale import types
+# درصورت نیاز
+# ---
+from aiobale.types import InfoMessage, Peer, ShortPeer, Chat, GiftPacket, StringValue, BoolValue, Report, PeerReport
+from aiobale.methods.magazine import UpvotePost, GetMessageUpvoters, RevokeUpvotedPost
+from aiobale.methods.abacus import MessageSetReaction, GetMessagesReactions, GetMessageReactionsList, GetMessagesViews
+from aiobale.types import OtherMessage
+from aiobale.methods.groups import JoinPublicGroup, LeaveGroup
+from aiobale.methods import EditName, SendReport
+# ---
 
 from . import models
 from .db import AsyncSessionLocal
