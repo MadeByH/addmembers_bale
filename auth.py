@@ -246,7 +246,7 @@ async def confirm_code(
     await db.commit()
     await db.refresh(account)
 
-    token = create_jwt({"account_id": account.id})
+    token = create_jwt({"user_id": user.id})
 
     return schemas.TokenData(
         access_token=token,
