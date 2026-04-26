@@ -13,6 +13,7 @@ import os
 import hashlib
 import hmac
 from urllib.parse import parse_qs
+from pydantic import BaseModel
 
 from aiobale import Client, Dispatcher
 
@@ -235,8 +236,14 @@ async def confirm_code(
     )
 
 
+class InitDataSchema(BaseModel):
+    init_data: str
+
 @router.post("/check")
-async def check_user(data: schemas.InitDataSchema, db: AsyncSession = Depends(get_async_db)):
+async def check_user(
+    data: InitDataSchema,
+    db: AsyncSession = Depends(get_async_db)
+):
     validated = validate_init_data(data.init_data)
 
     bale_user = json.loads(validated["user"])
@@ -246,23 +253,25 @@ async def check_user(data: schemas.InitDataSchema, db: AsyncSession = Depends(ge
     photo = bale_user.get("photo_url")
 
     user = await db.scalar(
-        select(User).where(User.bale_user_id == bale_user_id)
+        select(models.User).where(models.User.bale_user_id == bale_user_id)
     )
 
     if not user:
-        user = User(bale_user_id=bale_user_id)
+        # فقط با bale_user_id کاربر می‌سازیم
+        user = models.User(bale_user_id=bale_user_id)
         db.add(user)
         await db.commit()
         await db.refresh(user)
 
     account = await db.scalar(
-        select(Account).where(Account.owner_id == user.id)
+        select(models.Account).where(models.Account.owner_id == user.id)
     )
 
     if account:
-        token = create_jwt(account.id)
+        token = create_jwt({"account_id": account.id})
         return {"has_account": True, "token": token}
 
+    # اگر حساب ندارد
     return {"has_account": False}
 
 
