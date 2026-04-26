@@ -131,7 +131,7 @@ async def check_user(
     token = create_jwt(user.id)
 
     return {
-        "token": token
+        "has_account": True, "token": token
     }
 
 
