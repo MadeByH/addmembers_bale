@@ -1,7 +1,7 @@
 import asyncio
 import base64
 from pathlib import Path
-from datetime import timezone
+from datetime import datetime, timezone
 import time
 
 from fastapi import HTTPException
@@ -119,6 +119,11 @@ class AccountManager:
     # START SINGLE ACCOUNT
     # ---------------------------------------------------------
     async def start(self, account_id: int, db: AsyncSession):
+        stmt = select(models.Account).where(models.Account.id == account_id)
+        res = await db.execute(stmt)
+        account = None
+        com = False
+        ref = False
         async with self.lock:
 
             # already running?
@@ -127,8 +132,6 @@ class AccountManager:
                 return
 
             # load account
-            stmt = select(models.Account).where(models.Account.id == account_id)
-            res = await db.execute(stmt)
             account = res.scalar_one_or_none()
 
             if not account:
@@ -142,8 +145,8 @@ class AccountManager:
             if not account.session_data:
                 print(f"❌ no session_data for {account.phone}")
                 account.status = "dead"
-                account.is_blocked = True
-                await db.commit()
+                account.is_blocked = TTru
+                com = True
                 return
 
             # restore session file if missing
@@ -151,7 +154,7 @@ class AccountManager:
             if not ok:
                 account.status = "dead"
                 account.is_blocked = True
-                await db.commit()
+                com = True
                 return
 
             session_file = SESSION_DIR / f"{account.phone}.bale"
@@ -174,9 +177,7 @@ class AccountManager:
                 account.status = "running"
                 account.last_seen = datetime.utcnow()
                 account.is_blocked = False
-
-                await db.commit()
-                await db.refresh(account)
+                ref = True
 
             except Exception as e:
                 print(f"❌ start error for {account.phone}: {e}")
@@ -189,13 +190,20 @@ class AccountManager:
                 account.status = "dead"
                 account.is_blocked = True
                 account.last_seen = datetime.utcnow()
-                await db.commit()
-                await db.refresh(account)
+        if com:
+            await db.commit()
+        elif ref:
+            await db.commit()
+            await db.refresh(account)
 
     # ---------------------------------------------------------
     # STOP ACCOUNT
     # ---------------------------------------------------------
     async def stop(self, account_id: int, db: AsyncSession):
+        updated = False
+        account = None
+        stmt = select(models.Account).where(models.Account.id == account_id)
+        res = await db.execute(stmt)
         async with self.lock:
 
             client = self.running.pop(account_id, None)
@@ -205,8 +213,6 @@ class AccountManager:
                 except:
                     pass
 
-            stmt = select(models.Account).where(models.Account.id == account_id)
-            res = await db.execute(stmt)
             account = res.scalar_one_or_none()
 
             if account:
@@ -269,6 +275,8 @@ class AccountManager:
         Called periodically to update last_seen + clean broken clients
         """
         updated = False
+        stmt = select(models.Account).where(models.Account.id == account_id)
+        res = await db.execute(stmt)
         async with self.lock:
 
             now = datetime.now(timezone.utc)
@@ -276,8 +284,6 @@ class AccountManager:
 
             for account_id, client in list(self.running.items()):
 
-                stmt = select(models.Account).where(models.Account.id == account_id)
-                res = await db.execute(stmt)
                 account = res.scalar_one_or_none()
 
                 if not account:
