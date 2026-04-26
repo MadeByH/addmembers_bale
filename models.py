@@ -98,7 +98,7 @@ class Account(Base):
     bale_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     bale_username: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     bale_avatar: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    status: Mapped[AccountStatus] = mapped_column(String(50), default=AccountStatus.ACTIVE)
+    status: Mapped[AccountStatus] = mapped_column(String(50), default=AccountStatus.ACTIVE, index=True)
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     session_data: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     last_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
