@@ -88,6 +88,23 @@ async def get_current_account(
     return account
 
 
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_async_db)
+):
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+        user_id = int(payload.get("user_id"))
+    except Exception:
+        raise HTTPException(401, "توکن نامعتبر است")
+
+    user = await db.scalar(select(models.User).where(models.User.id == user_id))
+    if not user:
+        raise HTTPException(401, "کاربر پیدا نشد")
+
+    return user
+
+
 # ============================================================
 # LOGIN STATE
 # ============================================================
