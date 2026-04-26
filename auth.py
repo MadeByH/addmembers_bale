@@ -19,7 +19,6 @@ from aiobale import Client, Dispatcher
 from . import models, schemas
 from .db import get_async_db
 from .config import settings
-from .schemas import InitDataSchema, ProfileSchema, User
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -237,7 +236,7 @@ async def confirm_code(
 
 
 @router.post("/check")
-async def check_user(data: InitDataSchema, db: AsyncSession = Depends(get_async_db)):
+async def check_user(data: schemas.InitDataSchema, db: AsyncSession = Depends(get_async_db)):
     validated = validate_init_data(data.init_data)
 
     bale_user = json.loads(validated["user"])
@@ -269,7 +268,7 @@ async def check_user(data: InitDataSchema, db: AsyncSession = Depends(get_async_
 
 @router.post("/complete-profile")
 async def complete_profile(
-    data: ProfileSchema,
+    data: schemas.ProfileSchema,
     account: Account = Depends(get_current_temp_account),
     db: AsyncSession = Depends(get_async_db)
 ):
