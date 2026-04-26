@@ -36,8 +36,8 @@ order_accounts_association = Table(
 user_accounts = Table(
     "user_accounts",
     Base.metadata,
-    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True),
-    Column("account_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), index=True),
+    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True),
+    Column("account_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), unique=True, index=True),
     Column(
         "created_at",
         DateTime(timezone=True),
@@ -87,7 +87,7 @@ class Account(Base):
     bale_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     bale_username: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     bale_avatar: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    status: UserStatus = mapped_column(String(50), default=UserStatus.RUNNING)
+    status: Mapped[UserStatus] = mapped_column(String(50), default=UserStatus.RUNNING)
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     session_data: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     last_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
@@ -98,7 +98,7 @@ class Account(Base):
     invitations_count: Mapped[int] = mapped_column(Integer, default=0)
     vip_status: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     gender: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    birthdate: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    birthdate: Mapped[Optional[datetime]] = mapped_column(Date(timezone=True), nullable=True)
     city: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     # رابطه با سفارش‌هایی که این اکانت ایجاد کرده
