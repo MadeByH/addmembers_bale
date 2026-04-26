@@ -43,7 +43,7 @@ class AccountManager:
         """
         If file `.bale` doesn't exist, recreate from base64 DB `session_data`
         """
-        session_file = SESSION_DIR / f"{account.phone}.bale"
+        session_file = SESSION_DIR / f"{account.id}.bale"
 
         if not session_file.exists():
             if not account.session_data:
@@ -155,7 +155,7 @@ class AccountManager:
             await db.commit()
             return
 
-        session_file = SESSION_DIR / f"{account.phone}.bale"
+        session_file = SESSION_DIR / f"{account.id}.bale"
 
         dispatcher = Dispatcher()
         client = Client(dispatcher, session_file=str(session_file))
