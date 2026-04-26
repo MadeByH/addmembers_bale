@@ -19,6 +19,7 @@ from aiobale import Client, Dispatcher
 from . import models, schemas
 from .db import get_async_db
 from .config import settings
+from .schemas import InitDataSchema, ProfileSchema, User
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
