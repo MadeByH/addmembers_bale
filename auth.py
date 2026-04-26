@@ -288,6 +288,27 @@ async def get_accounts(
     return accounts
 
 
+@router.post("/auth/switch/{account_id}")
+async def switch_account(account_id: int, user=Depends(get_current_user)):
+    
+    # check ownership
+    stmt = select(models.user_accounts).where(
+        models.user_accounts.c.user_id == user.id,
+        models.user_accounts.c.account_id == account_id
+    )
+
+    res = await db.execute(stmt)
+    link = res.first()
+
+    if not link:
+        raise HTTPException(403, "Not your account")
+
+    user.active_account_id = account_id
+    await db.commit()
+
+    return {"ok": True}
+
+
 # ============================================================
 # PROFILE UPDATE
 # ============================================================
