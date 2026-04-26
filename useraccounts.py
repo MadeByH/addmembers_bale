@@ -268,12 +268,12 @@ class AccountManager:
         """
         Called periodically to update last_seen + clean broken clients
         """
+        updated = False
         async with self.lock:
 
             now = datetime.now(timezone.utc)
             dead_ids = []
 
-            updated = False
             for account_id, client in list(self.running.items()):
 
                 stmt = select(models.Account).where(models.Account.id == account_id)
@@ -293,12 +293,13 @@ class AccountManager:
                 account.last_seen = now
                 account.status = "running"
                 updated = True
-            if updated:
-                await db.commit()
 
             # stop dead accounts
             for acc_id in dead_ids:
                 await self.stop(acc_id, db)
+
+        if updated:
+            await db.commit()
 
 
 # ============================================================
