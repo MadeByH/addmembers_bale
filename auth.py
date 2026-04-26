@@ -1,8 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from datetime import datetime, timedelta
 from jose import jwt
 from pathlib import Path
@@ -28,6 +27,11 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 BOT_TOKEN = settings.BOT_TOKEN
 
+
+# ============================================================
+# INIT DATA VALIDATION (MiniApp)
+# ============================================================
+
 def validate_init_data(init_data: str) -> dict:
     parsed = parse_qs(init_data, strict_parsing=True)
     hash_received = parsed.pop("hash")[0]
@@ -47,7 +51,7 @@ def validate_init_data(init_data: str) -> dict:
     ).hexdigest()
 
     if calculated_hash != hash_received:
-        raise Exception("Invalid init data")
+        raise HTTPException(401, "initData نامعتبر است")
 
     return {k: v[0] for k, v in parsed.items()}
 
@@ -56,49 +60,29 @@ def validate_init_data(init_data: str) -> dict:
 # JWT
 # ============================================================
 
-def create_jwt(data: dict, expires_delta: int = 3600 * 24 * 7):
-    payload = data.copy()
-    expire = datetime.utcnow() + timedelta(seconds=expires_delta)
-    payload.update({"exp": expire})
+def create_jwt(user_id: int, expires: int = 60 * 60 * 24 * 7):
+    payload = {
+        "user_id": user_id,
+        "exp": datetime.utcnow() + timedelta(seconds=expires),
+    }
+
     return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
-
-
-async def get_current_account(
-    token: str = Depends(oauth2_scheme),
-    db: AsyncSession = Depends(get_async_db)
-):
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-        account_id = int(payload.get("account_id"))
-    except Exception:
-        raise HTTPException(status_code=401, detail="توکن نامعتبر است")
-
-    stmt = (
-        select(models.Account)
-        .where(models.Account.id == account_id)
-        .options(selectinload(models.Account.owner))
-    )
-
-    res = await db.execute(stmt)
-    account = res.scalar_one_or_none()
-
-    if not account:
-        raise HTTPException(status_code=401, detail="اکانت پیدا نشد")
-
-    return account
 
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
-    db: AsyncSession = Depends(get_async_db)
+    db: AsyncSession = Depends(get_async_db),
 ):
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-        user_id = int(payload.get("user_id"))
+        user_id = int(payload["user_id"])
     except Exception:
         raise HTTPException(401, "توکن نامعتبر است")
 
-    user = await db.scalar(select(models.User).where(models.User.id == user_id))
+    user = await db.scalar(
+        select(models.User).where(models.User.id == user_id)
+    )
+
     if not user:
         raise HTTPException(401, "کاربر پیدا نشد")
 
@@ -106,7 +90,7 @@ async def get_current_user(
 
 
 # ============================================================
-# LOGIN STATE
+# SESSION STORAGE
 # ============================================================
 
 SESSION_DIR = Path("session.bale")
@@ -115,25 +99,52 @@ SESSION_DIR.mkdir(exist_ok=True)
 pending_auth: dict[str, dict] = {}
 lock = asyncio.Lock()
 
+
 # ============================================================
-# START LOGIN
+# MINIAPP LOGIN
+# ============================================================
+
+class InitDataSchema(BaseModel):
+    init_data: str
+
+
+@router.post("/check")
+async def check_user(
+    data: InitDataSchema,
+    db: AsyncSession = Depends(get_async_db),
+):
+    validated = validate_init_data(data.init_data)
+
+    bale_user = json.loads(validated["user"])
+    bale_user_id = bale_user["id"]
+
+    user = await db.scalar(
+        select(models.User).where(models.User.bale_user_id == bale_user_id)
+    )
+
+    if not user:
+        user = models.User(bale_user_id=bale_user_id)
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
+    token = create_jwt(user.id)
+
+    return {
+        "token": token
+    }
+
+
+# ============================================================
+# START LOGIN ACCOUNT
 # ============================================================
 
 @router.post("/start", response_model=schemas.StartLoginResponse)
 async def start_login(
     data: schemas.StartLoginRequest,
-    db: AsyncSession = Depends(get_async_db)
+    user: models.User = Depends(get_current_user),
 ):
     phone = data.phone
-    owner_id = data.owner_id
-
-    # check owner exists
-    stmt = select(models.User).where(models.User.id == owner_id)
-    res = await db.execute(stmt)
-    owner = res.scalar_one_or_none()
-
-    if not owner:
-        raise HTTPException(404, "کاربر پیدا نشد")
 
     session_file = SESSION_DIR / f"{phone}.bale"
 
@@ -145,9 +156,9 @@ async def start_login(
 
     async with lock:
 
-        # cleanup old login
         if phone in pending_auth:
             old = pending_auth.pop(phone)
+
             try:
                 await old["client"].stop()
             except:
@@ -164,7 +175,7 @@ async def start_login(
         pending_auth[phone] = {
             "client": client,
             "tx": res.transaction_hash,
-            "owner_id": owner_id
+            "user_id": user.id
         }
 
     return schemas.StartLoginResponse(
@@ -175,13 +186,13 @@ async def start_login(
 
 
 # ============================================================
-# CONFIRM CODE
+# CONFIRM LOGIN
 # ============================================================
 
-@router.post("/confirm", response_model=schemas.TokenData)
+@router.post("/confirm")
 async def confirm_code(
     data: schemas.ConfirmCodeRequest,
-    db: AsyncSession = Depends(get_async_db)
+    db: AsyncSession = Depends(get_async_db),
 ):
     phone = data.phone
     code = data.code
@@ -194,7 +205,7 @@ async def confirm_code(
 
     client: Client = entry["client"]
     tx = entry["tx"]
-    owner_id = entry["owner_id"]
+    user_id = entry["user_id"]
 
     try:
         await client.validate_code(code, tx)
@@ -209,11 +220,10 @@ async def confirm_code(
             raise HTTPException(400, "کد منقضی شده")
 
         if "FLOOD_WAIT" in msg:
-            raise HTTPException(429, "تلاش زیاد، بعداً امتحان کنید")
+            raise HTTPException(429, "تلاش زیاد")
 
         raise HTTPException(500, "خطا در تایید کد")
 
-    # read session file
     session_file = SESSION_DIR / f"{phone}.bale"
 
     if not session_file.exists():
@@ -221,105 +231,90 @@ async def confirm_code(
 
     session_data = base64.b64encode(session_file.read_bytes()).decode()
 
-    # save account
-    stmt = select(models.Account).where(
-        models.Account.phone == phone,
-        models.Account.owner_id == owner_id
+    account = await db.scalar(
+        select(models.Account).where(models.Account.phone == phone)
     )
-
-    res = await db.execute(stmt)
-    account = res.scalar_one_or_none()
 
     if not account:
         account = models.Account(
             phone=phone,
-            owner_id=owner_id,
             session_data=session_data,
             is_blocked=False
         )
+
         db.add(account)
+        await db.flush()
+
+        await db.execute(
+            models.user_accounts.insert().values(
+                user_id=user_id,
+                account_id=account.id
+            )
+        )
 
     else:
         account.session_data = session_data
-        account.is_blocked = False
 
     await db.commit()
-    await db.refresh(account)
 
-    token = create_jwt({"user_id": owner_id})
-
-    return schemas.TokenData(
-        access_token=token,
-        token_type="bearer"
-    )
+    return {"ok": True}
 
 
-class InitDataSchema(BaseModel):
-    init_data: str
+# ============================================================
+# GET USER ACCOUNTS
+# ============================================================
 
-@router.post("/check")
-async def check_user(
-    data: InitDataSchema,
-    db: AsyncSession = Depends(get_async_db)
+@router.get("/accounts")
+async def get_accounts(
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db),
 ):
-    validated = validate_init_data(data.init_data)
 
-    bale_user = json.loads(validated["user"])
-
-    bale_user_id = bale_user["id"]
-    username = bale_user.get("username")
-    photo = bale_user.get("photo_url")
-
-    user = await db.scalar(
-        select(models.User).where(models.User.bale_user_id == bale_user_id)
+    result = await db.execute(
+        select(models.Account)
+        .join(models.user_accounts)
+        .where(models.user_accounts.c.user_id == user.id)
     )
 
-    if not user:
-        # فقط با bale_user_id کاربر می‌سازیم
-        user = models.User(bale_user_id=bale_user_id)
-        db.add(user)
-        await db.commit()
-        await db.refresh(user)
+    accounts = result.scalars().all()
 
-    account = await db.scalar(
-        select(models.Account).where(models.Account.owner_id == user.id)
-    )
+    return accounts
 
-    if account:
-        token = create_jwt({"user_id": user.id})
-        return {"has_account": True, "token": token}
 
-    # اگر حساب ندارد
-    return {"has_account": False}
-
+# ============================================================
+# PROFILE UPDATE
+# ============================================================
 
 class ProfileSchema(BaseModel):
     gender: Optional[str] = None
-    birthdate: Optional[datetime] = None  # یا date
+    birthdate: Optional[datetime] = None
     city: Optional[str] = None
 
-@router.post("/complete-profile")
+
+@router.post("/profile/{account_id}")
 async def complete_profile(
+    account_id: int,
     data: ProfileSchema,
-    account: models.Account = Depends(get_current_account),
-    db: AsyncSession = Depends(get_async_db)
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db),
 ):
+
+    account = await db.scalar(
+        select(models.Account)
+        .join(models.user_accounts)
+        .where(
+            models.Account.id == account_id,
+            models.user_accounts.c.user_id == user.id
+        )
+    )
+
+    if not account:
+        raise HTTPException(404, "اکانت پیدا نشد")
+
     account.gender = data.gender
     account.birthdate = data.birthdate
     account.city = data.city
 
     await db.commit()
-    await db.refresh(account)
 
-    # می‌توانی همان token قبلی را قبول کنی، یا دوباره صادر کنی
-    final_token = create_jwt({"account_id": account.id})
-    return {"token": final_token}
-
-
-# ============================================================
-# ME
-# ============================================================
-
-@router.get("/me", response_model=schemas.Account)
-async def me(account: models.Account = Depends(get_current_account)):
-    return account
+    return {"ok": True}
