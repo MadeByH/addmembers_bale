@@ -286,7 +286,7 @@ async def check_user(
     )
 
     if account:
-        token = create_jwt({"account_id": account.id})
+        token = create_jwt({"user_id": user.id})
         return {"has_account": True, "token": token}
 
     # اگر حساب ندارد
