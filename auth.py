@@ -306,6 +306,7 @@ async def switch_account(account_id: int, user=Depends(get_current_user)):
 
     user.active_account_id = account_id
     await db.commit()
+    await account_manager.ensure_running(account.id)
 
     return {"ok": True}
 
