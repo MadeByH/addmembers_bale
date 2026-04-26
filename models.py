@@ -57,6 +57,10 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     bale_user_id: Mapped[int] = mapped_column(unique=True, index=True) # فرض می‌کنیم bale_user_id منحصر به فرد است
+    active_account_id: Mapped[Optional[int]] = mapped_column(
+    ForeignKey("accounts.id"),
+    nullable=True
+)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
