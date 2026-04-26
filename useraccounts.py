@@ -176,6 +176,10 @@ class AccountManager:
             account.status = "running"
             account.last_seen = datetime.utcnow()
             account.is_blocked = False
+            account.bale_id = me.id
+            account.bale_name = me.first_name
+            account.bale_username = me.username
+            account.bale_avatar = me.photo
             await db.commit()
             await db.refresh(account)
 
