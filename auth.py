@@ -57,7 +57,7 @@ hashlib.sha256
 # JWT
 # ============================================================
 
-def create_access_token(data: dict, expires_delta: int = 3600 * 24 * 7):
+def create_jwt(data: dict, expires_delta: int = 3600 * 24 * 7):
     payload = data.copy()
     expire = datetime.utcnow() + timedelta(seconds=expires_delta)
     payload.update({"exp": expire})
@@ -230,7 +230,7 @@ async def confirm_code(
     await db.commit()
     await db.refresh(account)
 
-    token = create_access_token({"account_id": account.id})
+    token = create_jwt({"account_id": account.id})
 
     return schemas.TokenData(
         access_token=token,
