@@ -119,80 +119,70 @@ class AccountManager:
     # START SINGLE ACCOUNT
     # ---------------------------------------------------------
     async def start(self, account_id: int, db: AsyncSession):
+        # اول از DB بخوان
         stmt = select(models.Account).where(models.Account.id == account_id)
         res = await db.execute(stmt)
-        account = None
-        com = False
-        ref = False
-        async with self.lock:
+        account = res.scalar_one_or_none()
 
-            # already running?
+        if not account:
+            print(f"❌ account {account_id} not found")
+            return
+
+        if account.is_blocked:
+            print(f"⛔ account {account.phone} blocked, skip")
+            return
+
+        if not account.session_data:
+            print(f"❌ no session_data for {account.phone}")
+            account.status = "dead"
+            account.is_blocked = True
+            await db.commit()
+            return
+
+        ok = await self._restore_session_file(account)
+        if not ok:
+            account.status = "dead"
+            account.is_blocked = True
+            await db.commit()
+            return
+
+        session_file = SESSION_DIR / f"{account.phone}.bale"
+
+        dispatcher = Dispatcher()
+        client = Client(dispatcher, session_file=str(session_file))
+        self.attach_handlers(client)
+
+        # این‌جا فقط برای self.running قفل بگیر
+        async with self.lock:
             if account_id in self.running:
                 print(f"⚠️ account {account_id} already running")
                 return
+            self.running[account_id] = client
 
-            # load account
-            account = res.scalar_one_or_none()
+        try:
+            await client.start(run_in_background=True)
+            me = await client.get_me()
+            print(f"🟢 account {account.phone} logged in as {me.name}")
 
-            if not account:
-                print(f"❌ account {account_id} not found")
-                return
-
-            if account.is_blocked:
-                print(f"⛔ account {account.phone} blocked, skip")
-                return
-
-            if not account.session_data:
-                print(f"❌ no session_data for {account.phone}")
-                account.status = "dead"
-                account.is_blocked = TTru
-                com = True
-                return
-
-            # restore session file if missing
-            ok = await self._restore_session_file(account)
-            if not ok:
-                account.status = "dead"
-                account.is_blocked = True
-                com = True
-                return
-
-            session_file = SESSION_DIR / f"{account.phone}.bale"
-
-            # create client
-            dispatcher = Dispatcher()
-            client = Client(dispatcher, session_file=str(session_file))
-
-            # optional attach handlers
-            self.attach_handlers(client)
-
-            try:
-                await client.start(run_in_background=True)
-
-                me = await client.get_me()
-                print(f"🟢 account {account.phone} logged in as {me.name}")
-
-                self.running[account_id] = client
-
-                account.status = "running"
-                account.last_seen = datetime.utcnow()
-                account.is_blocked = False
-                ref = True
-
-            except Exception as e:
-                print(f"❌ start error for {account.phone}: {e}")
-
-                try:
-                    await client.stop()
-                except:
-                    pass
-
-                account.status = "dead"
-                account.is_blocked = True
-                account.last_seen = datetime.utcnow()
-        if com:
+            account.status = "running"
+            account.last_seen = datetime.utcnow()
+            account.is_blocked = False
             await db.commit()
-        elif ref:
+            await db.refresh(account)
+
+        except Exception as e:
+            print(f"❌ start error for {account.phone}: {e}")
+            try:
+                await client.stop()
+            except:
+                pass
+
+            async with self.lock:
+                self.running.pop(account_id, None)
+
+            account.status = "dead"
+            account.is_blocked = True
+            account.last_seen = datetime.utcnow()
             await db.commit()
             await db.refresh(account)
 
@@ -200,12 +190,7 @@ class AccountManager:
     # STOP ACCOUNT
     # ---------------------------------------------------------
     async def stop(self, account_id: int, db: AsyncSession):
-        updated = False
-        account = None
-        stmt = select(models.Account).where(models.Account.id == account_id)
-        res = await db.execute(stmt)
         async with self.lock:
-
             client = self.running.pop(account_id, None)
             if client:
                 try:
@@ -213,13 +198,16 @@ class AccountManager:
                 except:
                     pass
 
-            account = res.scalar_one_or_none()
+        # DB بیرون lock
+        stmt = select(models.Account).where(models.Account.id == account_id)
+        res = await db.execute(stmt)
+        account = res.scalar_one_or_none()
 
-            if account:
-                account.status = "offline"
-                account.last_seen = datetime.utcnow()
-                await db.commit()
-                await db.refresh(account)
+        if account:
+            account.status = "offline"
+            account.last_seen = datetime.utcnow()
+            await db.commit()
+            await db.refresh(account)
 
     # ---------------------------------------------------------
     # REMOVE ACCOUNT
@@ -275,34 +263,34 @@ class AccountManager:
         Called periodically to update last_seen + clean broken clients
         """
         updated = False
-        stmt = select(models.Account).where(models.Account.id == account_id)
-        res = await db.execute(stmt)
+        now = datetime.now(timezone.utc)
+
+        # اول یک snapshot از running بدون lock طولانی
         async with self.lock:
+            running_items = list(self.running.items())
 
-            now = datetime.now(timezone.utc)
-            dead_ids = []
+        dead_ids = []
 
-            for account_id, client in list(self.running.items()):
+        for account_id, client in running_items:
+            stmt = select(models.Account).where(models.Account.id == account_id)
+            res = await db.execute(stmt)
+            account = res.scalar_one_or_none()
 
-                account = res.scalar_one_or_none()
+            if not account:
+                dead_ids.append(account_id)
+                continue
 
-                if not account:
-                    dead_ids.append(account_id)
-                    continue
+            if account.is_blocked:
+                print(f"⛔ stopping blocked account {account.phone}")
+                dead_ids.append(account_id)
+                continue
 
-                if account.is_blocked:
-                    print(f"⛔ stopping blocked account {account.phone}")
-                    dead_ids.append(account_id)
-                    continue
+            account.last_seen = now
+            account.status = "running"
+            updated = True
 
-                # update last_seen
-                account.last_seen = now
-                account.status = "running"
-                updated = True
-
-            # stop dead accounts
-            for acc_id in dead_ids:
-                await self.stop(acc_id, db)
+        for acc_id in dead_ids:
+            await self.stop(acc_id, db)
 
         if updated:
             await db.commit()
