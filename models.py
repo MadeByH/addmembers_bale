@@ -1,5 +1,5 @@
 # models.py
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from typing import List, Optional, Literal
 from enum import Enum
 
@@ -42,7 +42,7 @@ user_accounts = Table(
     Column("created_at", DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)),
 )
 
-class UserStatus(str, Enum):
+class AccountStatus(str, Enum):
     RUNNING = "running"
     ACTIVE = "active"
     LOGGED_OUT = "logged_out"
@@ -79,6 +79,16 @@ class User(Base):
         return f"<User(id={self.id}, bale_user_id={self.bale_user_id})>"
 
 
+class BlockedPhone(Base):
+    __tablename__ = "blocked_phones"
+
+    phone: Mapped[str] = mapped_column(String(20), primary_key=True)
+    reason: Mapped[Optional[str]] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+
 class Account(Base):
     __tablename__ = "accounts"
 
@@ -88,7 +98,7 @@ class Account(Base):
     bale_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     bale_username: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     bale_avatar: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    status: Mapped[UserStatus] = mapped_column(String(50), default=UserStatus.ACTIVE)
+    status: Mapped[AccountStatus] = mapped_column(String(50), default=AccountStatus.ACTIVE)
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     session_data: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     last_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
@@ -99,7 +109,7 @@ class Account(Base):
     invitations_count: Mapped[int] = mapped_column(Integer, default=0)
     vip_status: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     gender: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    birthdate: Mapped[Optional[datetime]] = mapped_column(Date, nullable=True)
+    birthdate: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     city: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     # رابطه با سفارش‌هایی که این اکانت ایجاد کرده
