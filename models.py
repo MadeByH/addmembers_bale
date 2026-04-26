@@ -36,13 +36,9 @@ order_accounts_association = Table(
 user_accounts = Table(
     "user_accounts",
     Base.metadata,
-    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True),
-    Column("account_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), unique=True, index=True),
-    Column(
-        "created_at",
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-    ),
+    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+    Column("account_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), primary_key=True),
+    Column("created_at", DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)),
 )
 
 class UserStatus(str, Enum):
