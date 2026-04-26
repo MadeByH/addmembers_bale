@@ -241,12 +241,7 @@ async def confirm_code(
             session_data=session_data,
             is_blocked=False
         )
-        existing_link = await db.scalar(
-    select(models.user_accounts).where(
-        models.user_accounts.c.user_id == user_id,
-        models.user_accounts.c.account_id == account.id
-    )
-)
+        existing_link = None
 
         db.add(account)
         await db.flush()
@@ -260,7 +255,12 @@ async def confirm_code(
 
     else:
         account.session_data = session_data
-        existing_link = None
+        existing_link = await db.scalar(
+    select(models.user_accounts).where(
+        models.user_accounts.c.user_id == user_id,
+        models.user_accounts.c.account_id == account.id
+    )
+)
 
     await db.commit()
 
