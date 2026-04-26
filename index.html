@@ -604,6 +604,52 @@
             const sections = document.querySelectorAll('.section');
             const userBalanceSpan = document.getElementById('user-balance');
 
+            async function bootstrapAuth() {
+    if (!window.Bale || !window.Bale.WebApp) {
+        console.error("MiniApp SDK not found");
+        return;
+    }
+
+    const webApp = window.Bale.WebApp;
+    webApp.ready();
+
+    const initData = webApp.initData;
+
+    if (!initData) {
+        console.error("initData not found");
+        return;
+    }
+
+    try {
+        const res = await fetch("/auth/check", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ init_data: initData })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.detail || "Auth failed");
+        }
+
+        if (data.needs_register) {
+            window.location.href = "/register.html";
+            return;
+        }
+
+        // ✅ user exists
+        localStorage.setItem("token", data.access_token);
+
+        loadUserProfile(data.user);
+
+    } catch (err) {
+        console.error("Auth bootstrap error:", err);
+    }
+}
+            
             function updateUserBalance(newBalance) {
                 userBalanceSpan.textContent = newBalance;
             }
@@ -635,11 +681,8 @@
                 });
             });
 
-            // Initialize with the profile page
-            navigateTo('profile');
+            bootstrapAuth();
 
-            // Dummy data for demonstration
-            updateUserBalance(1050);
         });
     </script>
 </body>
