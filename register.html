@@ -195,7 +195,8 @@
 
             if (data.has_account) {
                 localStorage.setItem("token", data.token);
-                show("main");
+                // ارسال به صفحه اصلی برنامه
+                window.location.href = "/";
             } else {
                 show("step1");
             }
