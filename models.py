@@ -11,6 +11,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Table,
+    Date,
 )
 from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
 
@@ -94,7 +95,7 @@ class Account(Base):
     invitations_count: Mapped[int] = mapped_column(Integer, default=0)
     vip_status: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     gender: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    birthdate: Mapped[Optional[datetime]] = mapped_column(Date(timezone=True), nullable=True)
+    birthdate: Mapped[Optional[datetime]] = mapped_column(Date, nullable=True)
     city: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     # رابطه با سفارش‌هایی که این اکانت ایجاد کرده
