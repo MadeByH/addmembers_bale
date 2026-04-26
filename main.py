@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
 from .db import AsyncSessionLocal
-import.auth import router as auth_router
+from .auth import router as auth_router
 from fastapi.staticfiles import StaticFiles
 
 # ==========================================================
@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
     # START ALL ACCOUNTS
     # ------------------------------
     async with AsyncSessionLocal() as db:
-        await account_manager.start_all(db)
+        await account_manager.start_all()
 
     # ------------------------------
     # START BACKGROUND TASK
