@@ -288,7 +288,7 @@ async def get_accounts(
     return accounts
 
 
-@router.post("/auth/switch/{account_id}")
+@router.post("/switch/{account_id}")
 async def switch_account(account_id: int, user=Depends(get_current_user)):
     
     # check ownership
