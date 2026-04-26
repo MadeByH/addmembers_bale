@@ -14,6 +14,7 @@ import hashlib
 import hmac
 from urllib.parse import parse_qs
 from pydantic import BaseModel
+from typing import Optional
 
 from aiobale import Client, Dispatcher
 
@@ -275,10 +276,15 @@ async def check_user(
     return {"has_account": False}
 
 
+class ProfileSchema(BaseModel):
+    gender: Optional[str] = None
+    birthdate: Optional[datetime] = None  # یا date
+    city: Optional[str] = None
+
 @router.post("/complete-profile")
 async def complete_profile(
-    data: schemas.ProfileSchema,
-    account: Account = Depends(get_current_temp_account),
+    data: ProfileSchema,
+    account: models.Account = Depends(get_current_account),
     db: AsyncSession = Depends(get_async_db)
 ):
     account.gender = data.gender
@@ -286,9 +292,10 @@ async def complete_profile(
     account.city = data.city
 
     await db.commit()
+    await db.refresh(account)
 
-    final_token = create_jwt(account.id)
-
+    # می‌توانی همان token قبلی را قبول کنی، یا دوباره صادر کنی
+    final_token = create_jwt({"account_id": account.id})
     return {"token": final_token}
 
 
