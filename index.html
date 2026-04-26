@@ -665,7 +665,7 @@
 
     const token = localStorage.getItem("token");
 
-    const res = await fetch("/accounts/me", {
+    const res = await fetch("/auth/accounts", {
         headers: {
             "Authorization": "Bearer " + token
         }
