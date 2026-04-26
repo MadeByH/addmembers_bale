@@ -1,6 +1,7 @@
 # models.py
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List, Optional, Literal
+from enum import Enum
 
 from sqlalchemy import (
     Column,
@@ -32,6 +33,26 @@ order_accounts_association = Table(
     ),
 )
 
+user_accounts = Table(
+    "user_accounts",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True),
+    Column("account_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), index=True),
+    Column(
+        "created_at",
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+    ),
+)
+
+class UserStatus(str, Enum):
+    RUNNING = "running"
+    ACTIVE = "active"
+    LOGGED_OUT = "logged_out"
+    BLOCKED = "blocked"
+    SLEEP = "sleep"
+    ERROR = "error"
+
 # --- مدل‌های دیتابیس ---
 
 class User(Base):
@@ -47,9 +68,11 @@ class User(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
-
-    # رابطه با اکانت‌ها
-    accounts: Mapped[List["Account"]] = relationship(back_populates="owner")
+    
+    accounts: Mapped[List["Account"]] = relationship(
+    secondary=user_accounts,
+    back_populates="users",
+)
 
     def __repr__(self):
         return f"<User(id={self.id}, bale_user_id={self.bale_user_id})>"
@@ -59,9 +82,12 @@ class Account(Base):
     __tablename__ = "accounts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     phone: Mapped[str] = mapped_column(String(20), unique=True, index=True)
-    status: Mapped[str] = mapped_column(String(50), default="running")
+    bale_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
+    bale_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    bale_username: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    bale_avatar: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    status: UserStatus = mapped_column(String(50), default=UserStatus.RUNNING)
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     session_data: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     last_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
@@ -75,9 +101,6 @@ class Account(Base):
     birthdate: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     city: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
-    # رابطه با Owner (User)
-    owner: Mapped["User"] = relationship(back_populates="accounts")
-
     # رابطه با سفارش‌هایی که این اکانت ایجاد کرده
     orders: Mapped[List["Order"]] = relationship(back_populates="account")
 
@@ -88,8 +111,13 @@ class Account(Base):
         lazy="selectin" # بهینه برای واکشی اطلاعات مرتبط
     )
 
+    users: Mapped[List["User"]] = relationship(
+    secondary=user_accounts,
+    back_populates="accounts",
+)
+
     def __repr__(self):
-        return f"<Account(id={self.id}, phone={self.phone}, owner_id={self.owner_id}, status='{self.status}')>"
+        return f"<Account(id={self.id}, phone={self.phone}, status='{self.status}')>"
 
 
 class Order(Base):
