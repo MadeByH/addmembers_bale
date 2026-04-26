@@ -606,48 +606,41 @@
 
             async function bootstrapAuth() {
     if (!window.Bale || !window.Bale.WebApp) {
-        console.error("MiniApp SDK not found");
+        console.error("MiniApp SDK not loaded.");
         return;
     }
 
-    const webApp = window.Bale.WebApp;
-    webApp.ready();
+    const web = window.Bale.WebApp;
+    web.ready();
+    web.expand();
 
-    const initData = webApp.initData;
+    const initData = web.initData;
 
-    if (!initData) {
-        console.error("initData not found");
+    const res = await fetch("/auth/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ init_data: initData })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        console.error("Auth check failed:", data);
         return;
     }
 
-    try {
-        const res = await fetch("/auth/check", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ init_data: initData })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-            throw new Error(data.detail || "Auth failed");
-        }
-
-        if (data.needs_register) {
-            window.location.href = "/register.html";
-            return;
-        }
-
-        // ✅ user exists
-        localStorage.setItem("token", data.access_token);
-
-        loadUserProfile(data.user);
-
-    } catch (err) {
-        console.error("Auth bootstrap error:", err);
+    if (!data.has_account) {
+        // ❗ کاربر اکانت ندارد → بفرستش به صفحه ثبت‌نام
+        window.location.href = "/register.html";
+        return;
     }
+
+    // کاربر حساب دارد → وارد برنامه شو
+    localStorage.setItem("token", data.token);
+
+    // حالا هر چیزی که باید داخل index بعد از login لود بشه را فراخوانی کن
+    loadUserProfile(data.user);
+    navigateTo("profile");
 }
             
             function updateUserBalance(newBalance) {
