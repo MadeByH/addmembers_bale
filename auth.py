@@ -285,16 +285,10 @@ async def get_accounts(
 # PROFILE UPDATE
 # ============================================================
 
-class ProfileSchema(BaseModel):
-    gender: Optional[str] = None
-    birthdate: Optional[datetime] = None
-    city: Optional[str] = None
-
-
 @router.post("/profile/{account_id}")
 async def complete_profile(
     account_id: int,
-    data: ProfileSchema,
+    data: schemas.ProfileSchema,
     user: models.User = Depends(get_current_user),
     db: AsyncSession = Depends(get_async_db),
 ):
