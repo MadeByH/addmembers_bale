@@ -52,16 +52,10 @@ class AccountBase(BaseModel):
     city: Optional[str] = None
     last_seen: Optional[datetime] = None
 
-class AccountCreate(AccountBase):
-    owner_id: int # Required for creation
-    # phone is already in AccountBase
-
 class AccountWithUserAndOrders(AccountBase): # New schema to include owner and orders
     id: int
-    owner_id: int
     created_at: datetime
     updated_at: datetime
-    owner: User # Nested User schema for the owner
     orders: List[Order] = [] # List of Order schemas
 
     class Config:
@@ -70,7 +64,6 @@ class AccountWithUserAndOrders(AccountBase): # New schema to include owner and o
 # Define Account after User and Order are potentially defined or will be forward declared
 class Account(AccountBase):
     id: int
-    owner_id: int
     created_at: datetime
     updated_at: datetime
 
@@ -129,10 +122,8 @@ class User(UserBase):
 class Account(AccountBase):
     id: int
     phone: Optional[str] = None
-    owner_id: int
     created_at: datetime
     updated_at: datetime
-    owner: User # Reference to the User schema
     orders: List[Order] = [] # Reference to the Order schema
 
     class Config:
@@ -166,10 +157,8 @@ class UserWithAccountsSummary(UserBase):
 class AccountWithUserAndOrderSummaries(AccountBase):
     id: int
     phone: Optional[str] = None
-    owner_id: int
     created_at: datetime
     updated_at: datetime
-    owner: User # Full user info for the owner
     orders: List[OrderBase] # Only basic order info
 
     class Config:
