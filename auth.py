@@ -235,7 +235,14 @@ async def confirm_code(
         select(models.Account).where(models.Account.phone == phone)
     )
 
-    if not account:
+    existing_link = await db.scalar(
+    select(models.user_accounts).where(
+        models.user_accounts.c.user_id == user_id,
+        models.user_accounts.c.account_id == account.id
+    )
+)
+
+    if not account or not existing_link:
         account = models.Account(
             phone=phone,
             session_data=session_data,
