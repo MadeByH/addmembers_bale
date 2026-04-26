@@ -35,11 +35,9 @@ def validate_init_data(init_data: str) -> dict:
         f"{k}={v[0]}" for k, v in sorted(parsed.items())
     )
 
-    secret_key = hmac.new(
-BOT_TOKEN.encode(),
-"WebAppData".encode(),
-hashlib.sha256
-).digest()
+    secret_key = hashlib.sha256(
+        ("WebAppData" + BOT_TOKEN).encode()
+    ).digest()
 
     calculated_hash = hmac.new(
         secret_key,
