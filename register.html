@@ -212,6 +212,10 @@ const birth=document.getElementById("birth_input").value;
 const city=document.getElementById("city_input").value;
 
 const [jy,jm,jd]=birth.split("/").map(Number);
+if (!birth.match(/^\d{4}\/\d{2}\/\d{2}$/)) {
+    alert("تاریخ را درست وارد کنید");
+    return;
+}
 
 const g=jalaali.toGregorian(jy,jm,jd);
 
