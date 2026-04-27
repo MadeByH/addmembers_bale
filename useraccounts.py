@@ -304,72 +304,70 @@ class AccountManager:
 
         await db.commit()
 
-    # ------------------------------
-    # join chat
-    # ------------------------------
+        # ------------------------------
+        # join chat
+        # ------------------------------
 
-    def get_link(text: str):
-        text = text.strip()
+        @staticmethod
+        def get_link(text: str):
+            text = text.strip()
 
-        join_pattern = r"^(?:https?://)?ble\.ir/join/([a-zA-Z0-9_-]+)$"
-        username_link_pattern = r"^(?:https?://)?ble\.ir/([a-zA-Z0-9_.-]+)$"
-        at_username_pattern = r"^@([a-zA-Z0-9_.-]+)$"
+            join_pattern = r"^(?:https?://)?ble\.ir/join/([a-zA-Z0-9_-]+)$"
+            username_link_pattern = r"^(?:https?://)?ble\.ir/([a-zA-Z0-9_.-]+)$"
+            at_username_pattern = r"^@([a-zA-Z0-9_.-]+)$"
 
-        if match := re.match(join_pattern, text):
-            return {"type": "join", "value": match.group(1)}
+            if match := re.match(join_pattern, text):
+                return {"type": "join", "value": match.group(1)}
 
-        elif match := re.match(username_link_pattern, text):
-            return {"type": "username", "value": match.group(1)}
+            elif match := re.match(username_link_pattern, text):
+                return {"type": "username", "value": match.group(1)}
 
-        elif match := re.match(at_username_pattern, text):
-            return {"type": "username", "value": match.group(1)}
+            elif match := re.match(at_username_pattern, text):
+                return {"type": "username", "value": match.group(1)}
 
-        return None
+            return None
 
-     async def join_chat(self, account_id: int, link: str, db: AsyncSession):
+        async def join_chat(self, account_id: int, link: str, db: AsyncSession):
 
-         # find account
-         stmt = select(models.Account).where(models.Account.id == account_id)
-         res = await db.execute(stmt)
-         account = res.scalar_one_or_none()
+            # find account
+            stmt = select(models.Account).where(models.Account.id == account_id)
+            res = await db.execute(stmt)
+            account = res.scalar_one_or_none()
 
-         if not account:
-             raise Exception("Account not found")
+            if not account:
+                raise Exception("Account not found")
 
-        # account must be running
-        client = self.running.get(account_id)
-        if not client:
-            raise Exception("Account is not running")
+            # account must be running
+            client = self.running.get(account_id)
+            if not client:
+                raise Exception("Account is not running")
 
-        link_data = get_link(link)
-        if not link_data:
-            raise Exception("Invalid link")
+            link_data = self.get_link(link)
+            if not link_data:
+                raise Exception("Invalid link")
 
-        link_type = link_data["type"]
-        value = link_data["value"]
+            link_type = link_data["type"]
+            value = link_data["value"]
 
-        try:
-            if link_type == "join":
-                # private link
-                await client.join_chat(value)
-                # print(f"➕ {account.phone} joined private chat {value}")
-                return True
+            try:
+                if link_type == "join":
+                    # private link
+                    await client.join_chat(value)
+                    return True
 
-            else:
+                else:
                 # username
-                result = await client.search_username(value)
-                if result.group is None:
-                    raise Exception("Cannot fetch public group/channel")
+                    result = await client.search_username(value)
+                    if result.group is None:
+                        raise Exception("Cannot fetch public group/channel")
 
-                chat_id = result.group.id
-                await client.join_public_chat(chat_id)
+                    chat_id = result.group.id
+                    await client.join_public_chat(chat_id)
+                    return True
 
-                # print(f"➕ {account.phone} joined public chat @{value}")
-                return True
-
-        except Exception as e:
-            print(f"❌ join error {account.phone}: {e}")
-            return False
+            except Exception as e:
+                print(f"❌ join error {account.phone}: {e}")
+                return False
 
 
 account_manager = AccountManager()
