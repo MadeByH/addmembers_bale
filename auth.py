@@ -314,7 +314,7 @@ async def switch_account(
     await db.commit()
 
     # run worker if not running
-    asyncio.create_task(account_manager.start(account_id, db))
+    asyncio.create_task(account_manager.start(account_id))
 
     return {"ok": True}
 
