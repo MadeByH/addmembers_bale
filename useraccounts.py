@@ -5,13 +5,12 @@ from pathlib import Path
 from datetime import datetime, timezone
 import time
 
-from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from aiobale import Client, Dispatcher
 from aiobale import types
-# درصورت نیاز
+
 # ---
 from aiobale.types import InfoMessage, Peer, ShortPeer, Chat, GiftPacket, StringValue, BoolValue, Report, PeerReport
 from aiobale.methods.magazine import UpvotePost, GetMessageUpvoters, RevokeUpvotedPost
@@ -22,133 +21,128 @@ from aiobale.methods import EditName, SendReport
 # ---
 
 from . import models
+from .models import AccountStatus
 from .db import AsyncSessionLocal
 
 SESSION_DIR = Path("session.bale")
 SESSION_DIR.mkdir(exist_ok=True)
 
 
-# ============================================================
-# ACCOUNT MANAGER
-# ============================================================
-
 class AccountManager:
+
     def __init__(self):
         self.running: dict[int, Client] = {}
         self.lock = asyncio.Lock()
 
-    # ---------------------------------------------------------
-    # RESTORE SESSION FROM DB
-    # ---------------------------------------------------------
+    # -------------------------------------------------
+    # restore session file
+    # -------------------------------------------------
+
     async def _restore_session_file(self, account: models.Account):
-        """
-        If file `.bale` doesn't exist, recreate from base64 DB `session_data`
-        """
+
         session_file = SESSION_DIR / f"{account.id}.bale"
 
-        if not session_file.exists():
-            if not account.session_data:
-                return False
+        if session_file.exists():
+            return True
 
-            try:
-                raw = base64.b64decode(account.session_data)
-                session_file.write_bytes(raw)
-                print(f"♻️ session restored for {account.phone}")
-            except Exception as e:
-                print(f"❌ failed restoring session: {e}")
-                return False
+        if not account.session_data:
+            return False
 
-        return True
+        try:
+            raw = base64.b64decode(account.session_data)
+            session_file.write_bytes(raw)
+            print(f"♻️ session restored for {account.phone}")
+            return True
+        except Exception as e:
+            print(f"❌ restore failed {account.phone}: {e}")
+            return False
 
+    # -------------------------------------------------
+    # handlers
+    # -------------------------------------------------
 
     @staticmethod
     def attach_handlers(client: Client):
+
         dp = client.dispatcher
 
         @dp.message()
         async def on_message(msg: types.Message):
 
-            # --------------------------------
-            # Client not active
-            # --------------------------------
             if not getattr(client, "_active", True):
                 return
 
-            # --------------------------------
-            # Bot not fully logged in
-            # --------------------------------
             if not hasattr(client, "me") or not client.me:
                 return
 
-            # --------------------------------
-            # Ignore own messages
-            # --------------------------------
             if msg.sender_id == client.me.id:
                 return
 
-            # --------------------------------
-            # Basic message data
-            # --------------------------------
             chat_id = getattr(msg.chat, "id", None)
             message_id = getattr(msg, "message_id", None)
             text = getattr(msg, "text", None)
-            date_unix = getattr(msg, "date", int(time.time()))
 
-            # --------------------------------
-            # Debug log
-            # --------------------------------
             print(
-            f"[{client._phone}] "
-            f"chat={chat_id} "
-            f"msg={message_id} "
-            f"text={str(text)[:40]}"
-        )
+                f"[{client._phone}] "
+                f"chat={chat_id} "
+                f"msg={message_id} "
+                f"text={str(text)[:40]}"
+            )
 
-            # --------------------------------
-            # Example command
-            # --------------------------------
             if text == "/ping":
                 try:
                     await client.send_message(chat_id, "pong ✅")
                 except Exception as e:
                     print("send error:", e)
 
-            # --------------------------------
-            # Example magazine detection
-            # --------------------------------
-            if getattr(msg, "is_channel_post", False):
+    # -------------------------------------------------
+    # check blocked phone
+    # -------------------------------------------------
 
-                print(
-                f"📰 [Magazine Info] "
-                f"ChatID: {chat_id} | "
-                f"MsgID: {message_id} | "
-                f"Date: {date_unix}"
-            )
+    async def _is_phone_blocked(self, phone: str, db: AsyncSession):
 
-    # ---------------------------------------------------------
-    # START SINGLE ACCOUNT
-    # ---------------------------------------------------------
+        stmt = select(models.BlockedPhone).where(
+            models.BlockedPhone.phone == phone
+        )
+
+        res = await db.execute(stmt)
+        blocked = res.scalar_one_or_none()
+
+        if not blocked:
+            return False
+
+        if blocked.expires_at and blocked.expires_at < datetime.now(timezone.utc):
+            return False
+
+        return True
+
+    # -------------------------------------------------
+    # start account
+    # -------------------------------------------------
+
     async def start(self, account_id: int, db: AsyncSession):
-        # اول از DB بخوان
+
         stmt = select(models.Account).where(models.Account.id == account_id)
         res = await db.execute(stmt)
         account = res.scalar_one_or_none()
 
         if not account:
-            print(f"❌ account {account_id} not found")
             return
 
-        if account.is_blocked:
-            print(f"⛔ account {account.phone} blocked, skip")
+        # check blocked phone
+        if await self._is_phone_blocked(account.phone, db):
+            print(f"⛔ phone blocked {account.phone}")
+            account.status = AccountStatus.BLOCKED
+            await db.commit()
             return
 
         if not account.session_data:
-            print(f"❌ no session_data for {account.phone}")
             account.status = AccountStatus.ERROR
             await db.commit()
             return
 
         ok = await self._restore_session_file(account)
+
         if not ok:
             account.status = AccountStatus.ERROR
             await db.commit()
@@ -158,96 +152,119 @@ class AccountManager:
 
         dispatcher = Dispatcher()
         client = Client(dispatcher, session_file=str(session_file))
+
         self.attach_handlers(client)
 
-        # این‌جا فقط برای self.running قفل بگیر
         async with self.lock:
+
             if account_id in self.running:
-                print(f"⚠️ account {account_id} already running")
                 return
+
             self.running[account_id] = client
 
         try:
+
             await client.start(run_in_background=True)
+
             me = await client.get_me()
-            print(f"🟢 account {account.phone} logged in as {me.name}")
+
+            print(f"🟢 account {account.phone} logged in")
 
             account.status = AccountStatus.RUNNING
-            account.last_seen = datetime.utcnow()
+            account.last_seen = datetime.now(timezone.utc)
+
             account.bale_id = me.id
             account.bale_name = me.first_name
             account.bale_username = me.username
             account.bale_avatar = me.photo
+
             await db.commit()
-            await db.refresh(account)
 
         except Exception as e:
-            print(f"❌ start error for {account.phone}: {e}")
+
+            print(f"❌ start error {account.phone} {e}")
+
+            async with self.lock:
+                self.running.pop(account_id, None)
+
             try:
                 await client.stop()
             except:
                 pass
 
-            async with self.lock:
-                self.running.pop(account_id, None)
-
             account.status = AccountStatus.ERROR
-            account.last_seen = datetime.utcnow()
+            account.last_seen = datetime.now(timezone.utc)
+
             await db.commit()
-            await db.refresh(account)
 
-    # ---------------------------------------------------------
-    # STOP ACCOUNT
-    # ---------------------------------------------------------
+    # -------------------------------------------------
+    # stop
+    # -------------------------------------------------
+
     async def stop(self, account_id: int, db: AsyncSession):
-        async with self.lock:
-            client = self.running.pop(account_id, None)
-            if client:
-                try:
-                    await client.stop()
-                except:
-                    pass
 
-        # DB بیرون lock
+        async with self.lock:
+
+            client = self.running.pop(account_id, None)
+
+        if client:
+            try:
+                await client.stop()
+            except:
+                pass
+
         stmt = select(models.Account).where(models.Account.id == account_id)
         res = await db.execute(stmt)
         account = res.scalar_one_or_none()
 
         if account:
-            account.status = AccountStatus.OFFLINE
-            account.last_seen = datetime.utcnow()
-            await db.commit()
-            await db.refresh(account)
 
-    # ---------------------------------------------------------
-    # REMOVE ACCOUNT
-    # ---------------------------------------------------------
+            account.status = AccountStatus.LOGGED_OUT
+            account.last_seen = datetime.now(timezone.utc)
+
+            await db.commit()
+
+    # -------------------------------------------------
+    # remove
+    # -------------------------------------------------
+
     async def remove(self, account_id: int, db: AsyncSession):
+
         await self.stop(account_id, db)
 
         stmt = select(models.Account).where(models.Account.id == account_id)
         res = await db.execute(stmt)
         account = res.scalar_one_or_none()
 
-        if account:
-            account.status = AccountStatus.ERROR
-            account.session_data = None
-            account.last_seen = datetime.utcnow()
-            await db.commit()
-            await db.refresh(account)
+        if not account:
+            return
 
-            print(f"🔕 account {account.phone} removed & blocked")
+        account.session_data = None
+        account.status = AccountStatus.ERROR
+        account.last_seen = datetime.now(timezone.utc)
 
-    # ---------------------------------------------------------
-    # START ALL ACCOUNTS
-    # ---------------------------------------------------------
+        await db.commit()
+
+        # delete session file
+        session_file = SESSION_DIR / f"{account.id}.bale"
+
+        if session_file.exists():
+            session_file.unlink()
+
+        print(f"🔕 account removed {account.phone}")
+
+    # -------------------------------------------------
+    # start all
+    # -------------------------------------------------
+
     async def start_all(self):
-        stmt = select(models.Account).where(
-        models.Account.is_blocked == False,
-        models.Account.session_data != None
-    )
 
         async with AsyncSessionLocal() as db:
+
+            stmt = select(models.Account).where(
+                models.Account.session_data != None
+            )
+
             res = await db.execute(stmt)
             accounts = res.scalars().all()
 
@@ -261,52 +278,40 @@ class AccountManager:
         print(f"🚀 started {len(tasks)} accounts")
 
     async def _start_with_new_session(self, account_id: int):
+
         async with AsyncSessionLocal() as db:
             await self.start(account_id, db)
 
-    # ---------------------------------------------------------
-    # HEALTH CHECK / UPDATE STATUS
-    # ---------------------------------------------------------
+    # -------------------------------------------------
+    # heartbeat
+    # -------------------------------------------------
+
     async def heartbeat(self, db: AsyncSession):
-        """
-        Called periodically to update last_seen + clean broken clients
-        """
-        updated = False
+
         now = datetime.now(timezone.utc)
 
-        # اول یک snapshot از running بدون lock طولانی
         async with self.lock:
-            running_items = list(self.running.items())
+            running = list(self.running.items())
 
-        dead_ids = []
+        for account_id, client in running:
 
-        for account_id, client in running_items:
             stmt = select(models.Account).where(models.Account.id == account_id)
             res = await db.execute(stmt)
             account = res.scalar_one_or_none()
 
             if not account:
-                dead_ids.append(account_id)
+                await self.stop(account_id, db)
                 continue
 
-            if account.is_blocked:
-                print(f"⛔ stopping blocked account {account.phone}")
-                dead_ids.append(account_id)
+            if await self._is_phone_blocked(account.phone, db):
+                print(f"⛔ stopping blocked {account.phone}")
+                await self.stop(account_id, db)
                 continue
 
             account.last_seen = now
             account.status = AccountStatus.RUNNING
-            updated = True
 
-        for acc_id in dead_ids:
-            await self.stop(acc_id, db)
+        await db.commit()
 
-        if updated:
-            await db.commit()
-
-
-# ============================================================
-# EXPORT SINGLETON
-# ============================================================
 
 account_manager = AccountManager()
