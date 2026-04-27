@@ -84,12 +84,6 @@
         <button class="button" onclick="completeProfile()">ادامه</button>
     </div>
 
-    <!-- صفحه اصلی -->
-    <div id="main" class="page">
-        <h2>خوش آمدید 🎉</h2>
-        <p>ثبت‌نام شما با موفقیت تکمیل شد.</p>
-    </div>
-
     <script>
         let initData = null;
         let tempToken = null;
@@ -152,7 +146,7 @@
             const birth_greg =
 `${g.gy}-${String(g.gm).padStart(2,'0')}-${String(g.gd).padStart(2,'0')}`;
 
-            const res = await fetch("/auth/complete-profile", {
+            const res = await fetch("/auth/profile", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -169,7 +163,8 @@
 
             localStorage.setItem("token", data.token);
 
-            show("main");
+            show("wellcome");
+            window.location.href = "/";
         }
 
         async function init() {
@@ -181,25 +176,7 @@
 
             initData = web.initData;
 
-            const res = await fetch("/auth/start", {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + localStorage.getItem("token")
-    },
-    body: JSON.stringify({ phone })
-});
-
-            const data = await res.json();
-
-            if (data.has_account) {
-                localStorage.setItem("token", data.token);
-                // ارسال به صفحه اصلی برنامه
-                window.location.href = "/";
-            } else {
-                show("step1");
-            }
-        }
+            show("step1");
 
         init();
     </script>
