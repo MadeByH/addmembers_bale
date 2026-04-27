@@ -28,13 +28,6 @@ class Base(DeclarativeBase):
 # =======================================
 # Enums
 # =======================================
-class AccountStatus(str, Enum):
-    RUNNING = "running"
-    ACTIVE = "active"
-    LOGGED_OUT = "logged_out"
-    BLOCKED = "blocked"
-    SLEEP = "sleep"
-    ERROR = "error"
 
 class OrderStatus(str, Enum):
     PENDING = "pending"
@@ -149,12 +142,6 @@ class Account(Base):
     bale_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     bale_username: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     bale_avatar: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-
-    status: Mapped[AccountStatus] = mapped_column(
-        String(50),
-        default=AccountStatus.ACTIVE,
-        index=True
-    )
 
     session_data: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
