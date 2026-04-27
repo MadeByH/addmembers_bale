@@ -1,7 +1,7 @@
 # main.py
 import asyncio
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from fastapi.responses import FileResponse
 
 from .db import AsyncSessionLocal
@@ -96,4 +96,35 @@ async def health():
     return {
         "status": "healthy",
         "running_accounts": len(account_manager.running)
+    }
+
+
+# ============================
+# PROFILE OF ACTIVE ACCOUNT
+# ============================
+
+profile_router = APIRouter(prefix="/me", tags=["Profile"])
+
+@profile_router.get("/profile")
+async def get_profile(
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db),
+):
+    if not user.active_account_id:
+        raise HTTPException(400, "No active account selected")
+
+    account = user.active_account
+    if not account:
+        raise HTTPException(404, "Account not found")
+
+    return {
+        "id": account.id,
+        "phone": account.phone,
+        "gender": account.gender,
+        "birhdate": account.birthdate,
+        "city": account.city,
+        "bale_id": account.bale_id,
+        "bale_username": account.bale_username,
+        "bale_name": account.bale_name,
+        "bale_avatar": account.bale_avatar,
     }
