@@ -144,15 +144,13 @@ class AccountManager:
 
         if not account.session_data:
             print(f"❌ no session_data for {account.phone}")
-            account.status = "dead"
-            account.is_blocked = True
+            account.status = AccountStatus.ERROR
             await db.commit()
             return
 
         ok = await self._restore_session_file(account)
         if not ok:
-            account.status = "dead"
-            account.is_blocked = True
+            account.status = AccountStatus.ERROR
             await db.commit()
             return
 
@@ -174,9 +172,8 @@ class AccountManager:
             me = await client.get_me()
             print(f"🟢 account {account.phone} logged in as {me.name}")
 
-            account.status = "running"
+            account.status = AccountStatus.RUNNING
             account.last_seen = datetime.utcnow()
-            account.is_blocked = False
             account.bale_id = me.id
             account.bale_name = me.first_name
             account.bale_username = me.username
@@ -194,8 +191,7 @@ class AccountManager:
             async with self.lock:
                 self.running.pop(account_id, None)
 
-            account.status = "dead"
-            account.is_blocked = True
+            account.status = AccountStatus.ERROR
             account.last_seen = datetime.utcnow()
             await db.commit()
             await db.refresh(account)
@@ -218,7 +214,7 @@ class AccountManager:
         account = res.scalar_one_or_none()
 
         if account:
-            account.status = "offline"
+            account.status = AccountStatus.OFFLINE
             account.last_seen = datetime.utcnow()
             await db.commit()
             await db.refresh(account)
@@ -234,8 +230,7 @@ class AccountManager:
         account = res.scalar_one_or_none()
 
         if account:
-            account.is_blocked = True
-            account.status = "dead"
+            account.status = AccountStatus.ERROR
             account.session_data = None
             account.last_seen = datetime.utcnow()
             await db.commit()
@@ -300,7 +295,7 @@ class AccountManager:
                 continue
 
             account.last_seen = now
-            account.status = "running"
+            account.status = AccountStatus.RUNNING
             updated = True
 
         for acc_id in dead_ids:
