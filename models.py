@@ -55,8 +55,8 @@ class OrderSpeed(str, Enum):
 order_accounts_association = Table(
     "order_accounts_association",
     Base.metadata,
-    Column("order_id", Integer, ForeignKey("orders.id", ondelete="CASCADE"), primary_key=True),
-    Column("account_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), primary_key=True),
+    Column("order_id", Integer, ForeignKey("orders.id", ondelete="CASCADE"), primary_key=True, index=True),
+    Column("account_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), primary_key=True, index=True),
     Column(
         "joined_at",
         DateTime(timezone=True),
