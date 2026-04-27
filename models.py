@@ -184,7 +184,7 @@ class Account(Base):
     )
 
     def __repr__(self):
-        return f"<Account(id={self.id}, phone={self.phone}, status={self.status})>"
+        return f"<Account(id={self.id}, phone={self.phone})>"
 
 
 # ---------------------------
