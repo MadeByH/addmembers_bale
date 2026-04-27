@@ -225,17 +225,20 @@ async def confirm_code(
 
         raise HTTPException(500, "خطا در تایید کد")
 
-    session_file = SESSION_DIR / f"{phone}.bale"
+    account = await db.scalar(
+        select(models.Account).where(models.Account.phone == phone)
+    )
+    
+    session_file = SESSION_DIR / f"{account.id}.bale"
 
     if not session_file.exists():
         raise HTTPException(500, "session ساخته نشد")
 
     session_data = base64.b64encode(session_file.read_bytes()).decode()
 
-    account = await db.scalar(
-        select(models.Account).where(models.Account.phone == phone)
-    )
-
+    session_file = SESSION_DIR / f"{account.id}.bale"
+    session_file.write_bytes(base64_decoded_raw)
+    
     if not account:
         account = models.Account(
             phone=phone,
