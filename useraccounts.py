@@ -22,7 +22,6 @@ from aiobale.methods import EditName, SendReport
 # ---
 
 from . import models
-from .models import AccountStatus
 from .db import AsyncSessionLocal
 
 SESSION_DIR = Path("session.bale")
