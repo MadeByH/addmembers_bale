@@ -120,78 +120,80 @@ class AccountManager:
     # start account
     # -------------------------------------------------
 
-    async def start(self, account_id: int, db: AsyncSession):
+    async def start(self, account_id: int):
 
-        stmt = select(models.Account).where(models.Account.id == account_id)
-        res = await db.execute(stmt)
-        account = res.scalar_one_or_none()
+        async with AsyncSessionLocal() as db:
+        
+            stmt = select(models.Account).where(models.Account.id == account_id)
+            res = await db.execute(stmt)
+            account = res.scalar_one_or_none()
 
-        if not account:
-            return
-
-        # check blocked phone
-        if await self._is_phone_blocked(account.phone, db):
-            print(f"⛔ phone blocked {account.phone}")
-            await db.commit()
-            return
-
-        if not account.session_data:
-            await db.delete(account)
-            await db.commit()
-            return
-
-        ok = await self._restore_session_file(account)
-
-        if not ok:
-            await db.commit()
-            return
-
-        session_file = SESSION_DIR / f"{account.id}.bale"
-
-        dispatcher = Dispatcher()
-        client = Client(dispatcher, session_file=str(session_file))
-
-        self.attach_handlers(client)
-
-        async with self.lock:
-
-            if account_id in self.running:
+            if not account:
                 return
 
-            self.running[account_id] = client
+            # check blocked phone
+            if await self._is_phone_blocked(account.phone, db):
+                print(f"⛔ phone blocked {account.phone}")
+                await db.commit()
+                return
 
-        try:
+            if not account.session_data:
+                await db.delete(account)
+                await db.commit()
+                return
 
-            await client.start(run_in_background=True)
+            ok = await self._restore_session_file(account)
 
-            me = await client.get_me()
+            if not ok:
+                await db.commit()
+                return
 
-            print(f"🟢 account {account.phone} logged in")
+            session_file = SESSION_DIR / f"{account.id}.bale"
 
-            account.last_seen = datetime.now(timezone.utc)
+            dispatcher = Dispatcher()
+            client = Client(dispatcher, session_file=str(session_file))
 
-            account.bale_id = me.id
-            account.bale_name = me.first_name
-            account.bale_username = me.username
-            account.bale_avatar = me.photo
-
-            await db.commit()
-
-        except Exception as e:
-
-            print(f"❌ start error {account.phone} {e}")
+            self.attach_handlers(client)
 
             async with self.lock:
-                self.running.pop(account_id, None)
+
+                if account_id in self.running:
+                    return
+
+                self.running[account_id] = client
 
             try:
-                await client.stop()
-            except:
-                pass
 
-            await db.delete(account)
+                await client.start(run_in_background=True)
 
-            await db.commit()
+                me = await client.get_me()
+
+                print(f"🟢 account {account.phone} logged in")
+
+                account.last_seen = datetime.now(timezone.utc)
+
+                account.bale_id = me.id
+                account.bale_name = me.first_name
+                account.bale_username = me.username
+                account.bale_avatar = me.photo
+
+                await db.commit()
+
+            except Exception as e:
+
+                print(f"❌ start error {account.phone} {e}")
+
+                async with self.lock:
+                    self.running.pop(account_id, None)
+
+                try:
+                    await client.stop()
+                except:
+                    pass
+
+                await db.delete(account)
+
+                await db.commit()
 
     # -------------------------------------------------
     # stop
@@ -272,7 +274,7 @@ class AccountManager:
     async def _start_with_new_session(self, account_id: int):
 
         async with AsyncSessionLocal() as db:
-            await self.start(account_id, db)
+            await self.start(account_id)
 
     # -------------------------------------------------
     # heartbeat
@@ -304,70 +306,70 @@ class AccountManager:
 
         await db.commit()
 
-        # ------------------------------
-        # join chat
-        # ------------------------------
+    # ------------------------------
+    # join chat
+    # ------------------------------
 
-        @staticmethod
-        def get_link(text: str):
-            text = text.strip()
+    @staticmethod
+    def get_link(text: str):
+        text = text.strip()
 
-            join_pattern = r"^(?:https?://)?ble\.ir/join/([a-zA-Z0-9_-]+)$"
-            username_link_pattern = r"^(?:https?://)?ble\.ir/([a-zA-Z0-9_.-]+)$"
-            at_username_pattern = r"^@([a-zA-Z0-9_.-]+)$"
+        join_pattern = r"^(?:https?://)?ble\.ir/join/([a-zA-Z0-9_-]+)$"
+        username_link_pattern = r"^(?:https?://)?ble\.ir/([a-zA-Z0-9_.-]+)$"
+        at_username_pattern = r"^@([a-zA-Z0-9_.-]+)$"
 
-            if match := re.match(join_pattern, text):
-                return {"type": "join", "value": match.group(1)}
+        if match := re.match(join_pattern, text):
+            return {"type": "join", "value": match.group(1)}
 
-            elif match := re.match(username_link_pattern, text):
-                return {"type": "username", "value": match.group(1)}
+        elif match := re.match(username_link_pattern, text):
+            return {"type": "username", "value": match.group(1)}
 
-            elif match := re.match(at_username_pattern, text):
-                return {"type": "username", "value": match.group(1)}
+        elif match := re.match(at_username_pattern, text):
+            return {"type": "username", "value": match.group(1)}
 
-            return None
+        return None
 
-        async def join_chat(self, account_id: int, link: str, db: AsyncSession):
+    async def join_chat(self, account_id: int, link: str, db: AsyncSession):
 
-            # find account
-            stmt = select(models.Account).where(models.Account.id == account_id)
-            res = await db.execute(stmt)
-            account = res.scalar_one_or_none()
+        # find account
+        stmt = select(models.Account).where(models.Account.id == account_id)
+        res = await db.execute(stmt)
+        account = res.scalar_one_or_none()
 
-            if not account:
-                raise Exception("Account not found")
+        if not account:
+            raise Exception("Account not found")
 
-            # account must be running
-            client = self.running.get(account_id)
-            if not client:
-                raise Exception("Account is not running")
+        # account must be running
+        client = self.running.get(account_id)
+        if not client:
+            raise Exception("Account is not running")
 
-            link_data = self.get_link(link)
-            if not link_data:
-                raise Exception("Invalid link")
+        link_data = self.get_link(link)
+        if not link_data:
+            raise Exception("Invalid link")
 
-            link_type = link_data["type"]
-            value = link_data["value"]
+        link_type = link_data["type"]
+        value = link_data["value"]
 
-            try:
-                if link_type == "join":
-                    # private link
-                    await client.join_chat(value)
-                    return True
+        try:
+            if link_type == "join":
+                # private link
+                await client.join_chat(value)
+                return True
 
-                else:
-                # username
-                    result = await client.search_username(value)
-                    if result.group is None:
-                        raise Exception("Cannot fetch public group/channel")
+            else:
+            # username
+                result = await client.search_username(value)
+                if result.group is None:
+                    raise Exception("Cannot fetch public group/channel")
 
-                    chat_id = result.group.id
-                    await client.join_public_chat(chat_id)
-                    return True
+                chat_id = result.group.id
+                await client.join_public_chat(chat_id)
+                return True
 
-            except Exception as e:
-                print(f"❌ join error {account.phone}: {e}")
-                return False
+        except Exception as e:
+            print(f"❌ join error {account.phone}: {e}")
+            return False
 
 
 account_manager = AccountManager()
