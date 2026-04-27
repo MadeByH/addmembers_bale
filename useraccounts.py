@@ -133,7 +133,6 @@ class AccountManager:
         # check blocked phone
         if await self._is_phone_blocked(account.phone, db):
             print(f"⛔ phone blocked {account.phone}")
-            account.status = AccountStatus.BLOCKED
             await db.commit()
             return
 
@@ -145,7 +144,6 @@ class AccountManager:
         ok = await self._restore_session_file(account)
 
         if not ok:
-            account.status = AccountStatus.ERROR
             await db.commit()
             return
 
@@ -171,7 +169,6 @@ class AccountManager:
 
             print(f"🟢 account {account.phone} logged in")
 
-            account.status = AccountStatus.RUNNING
             account.last_seen = datetime.now(timezone.utc)
 
             account.bale_id = me.id
@@ -219,7 +216,6 @@ class AccountManager:
 
         if account:
 
-            account.status = AccountStatus.LOGGED_OUT
             account.last_seen = datetime.now(timezone.utc)
 
             await db.commit()
@@ -306,7 +302,6 @@ class AccountManager:
                 continue
 
             account.last_seen = now
-            account.status = AccountStatus.RUNNING
 
         await db.commit()
 
