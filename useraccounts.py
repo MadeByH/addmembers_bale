@@ -239,19 +239,16 @@ class AccountManager:
         if not account:
             return
 
-        account.session_data = None
-        account.status = AccountStatus.ERROR
-        account.last_seen = datetime.now(timezone.utc)
-
-        await db.commit()
-
         # delete session file
         session_file = SESSION_DIR / f"{account.id}.bale"
 
         if session_file.exists():
             session_file.unlink()
 
-        print(f"🔕 account removed {account.phone}")
+        await db.delete(account)
+        await db.commit()
+
+        print(f"🗑️ account {account.phone} permanently removed")
 
     # -------------------------------------------------
     # start all
