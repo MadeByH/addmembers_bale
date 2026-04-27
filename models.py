@@ -84,6 +84,7 @@ class BlockedPhone(Base):
 
     phone: Mapped[str] = mapped_column(String(20), primary_key=True)
     reason: Mapped[Optional[str]] = mapped_column(String(255))
+    expires_at = Column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
