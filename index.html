@@ -416,6 +416,61 @@
             transform: translateY(-3px);
         }
 
+        .loader{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(255,255,255,0.8);
+display:flex;
+align-items:center;
+justify-content:center;
+z-index:9999;
+}
+
+        .hidden{
+display:none;
+}
+
+        .spinner{
+width:40px;
+height:40px;
+border:4px solid #eee;
+border-top:4px solid #3b82f6;
+border-radius:50%;
+animation:spin 1s linear infinite;
+}
+
+        @keyframes spin{
+0%{transform:rotate(0)}
+100%{transform:rotate(360deg)}
+}
+
+        .toast{
+position:fixed;
+bottom:90px;
+left:50%;
+transform:translateX(-50%);
+background:#111;
+color:white;
+padding:10px 16px;
+border-radius:10px;
+font-size:14px;
+z-index:9999;
+}
+
+        .toast.show{
+animation:toast 3s forwards;
+}
+
+        @keyframes toast{
+0%{opacity:0;transform:translate(-50%,20px)}
+10%{opacity:1;transform:translate(-50%,0)}
+90%{opacity:1}
+100%{opacity:0}
+}
+
     </style>
 </head>
 <body>
@@ -555,7 +610,7 @@
             </div>
 
             <!-- Channels Section -->
-            <div id="channels" class="section">
+            <div id="home" class="section">
                 <h2 class="text-2xl font-bold text-center mb-6">کانال‌ها و گروه‌ها</h2>
                  <div class="channel-list">
                     <div class="channel-item">
@@ -601,12 +656,18 @@
                 <i class='bx bx-wallet'></i>
                 <span>کسب سکه</span>
             </a>
-             <a href="#" class="nav-item" data-page="channels">
-                <i class='bx bx-group'></i>
+             <a href="#" class="nav-item" data-page="home">
+                <i class='bx bx-home'></i>
                 <span>خانه</span>
             </a>
         </footer>
     </div>
+
+    <div id="loader" class="loader hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
 
 <script>
 
@@ -629,6 +690,29 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function showLoader(){
+document.getElementById("loader").classList.remove("hidden");
+}
+
+    function hideLoader(){
+document.getElementById("loader").classList.add("hidden");
+}
+
+    function showToast(msg){
+
+const toast=document.getElementById("toast");
+
+toast.innerText=msg;
+toast.classList.remove("hidden");
+toast.classList.add("show");
+
+setTimeout(()=>{
+toast.classList.remove("show");
+toast.classList.add("hidden");
+},3000);
+
+}
+    
     /* =========================
         مسیریابی
     ========================= */
@@ -651,9 +735,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const token = localStorage.getItem("token");
 
+        showLoader();
         const res = await fetch("/me/profile", {
             headers: { "Authorization": "Bearer " + token }
         });
+        hideLoader();
 
         if (!res.ok) return;
 
@@ -677,9 +763,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const token = localStorage.getItem("token");
 
+        showLoader();
         const res = await fetch("/wallet", {
             headers: { "Authorization": "Bearer " + token }
         });
+        hideLoader();
 
         if (!res.ok) return;
 
@@ -698,9 +786,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const token = localStorage.getItem("token");
 
+        showLoader();
         const res = await fetch("/auth/accounts", {
             headers: { "Authorization": "Bearer " + token }
         });
+        hideLoader();
 
         if (!res.ok) {
             localStorage.removeItem("token");
@@ -715,24 +805,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
         accounts.forEach(acc => {
 
-            const el = document.createElement("div");
-            el.className =
-                "flex justify-between items-center bg-white p-3 rounded-lg shadow";
+const active = acc.is_active;
 
-            el.innerHTML = `
-                <div>
-                    <div class="font-bold">${acc.phone}</div>
-                </div>
-                <button data-id="${acc.id}" class="text-blue-600">
-                    فعال‌سازی
-                </button>
-            `;
+const el = document.createElement("div");
 
-            el.querySelector("button").onclick =
-                () => switchAccount(acc.id);
+el.className =
+"flex justify-between items-center bg-white p-3 rounded-lg shadow";
 
-            container.appendChild(el);
-        });
+el.innerHTML = `
+<div>
+<div class="font-bold">${acc.phone}</div>
+</div>
+
+${
+active
+? `<span style="color:green;font-weight:bold">فعال</span>`
+: `<button data-id="${acc.id}" class="text-blue-600">فعال‌سازی</button>`
+}
+`;
+
+if(!active){
+el.querySelector("button").onclick =
+() => switchAccount(acc.id);
+}
+
+container.appendChild(el);
+
+});
     }
 
     /* =========================
@@ -742,16 +841,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const token = localStorage.getItem("token");
 
+        showLoader();
         const res = await fetch(`/auth/switch/${id}`, {
             method: "POST",
             headers: { "Authorization": "Bearer " + token }
         });
+        hideLoader();
 
         if (res.ok) {
             await loadProfile();
             await loadWallet();
             await loadOrders();
         }
+
+        showToast("اکانت فعال شد");
     }
 
     /* =========================
@@ -761,9 +864,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const token = localStorage.getItem("token");
 
+        showLoader();
         const res = await fetch("/orders", {
             headers: { "Authorization": "Bearer " + token }
         });
+        hideLoader();
 
         const container =
             document.querySelector("#orders .order-list");
@@ -813,11 +918,13 @@ document.addEventListener("DOMContentLoaded", () => {
         web.ready();
         web.expand();
 
+        showLoader();
         const res = await fetch("/auth/check", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ init_data: web.initData })
         });
+        hideLoader();
 
         const data = await res.json();
 
@@ -836,6 +943,11 @@ document.addEventListener("DOMContentLoaded", () => {
         navigateTo("profile");
     }
 
+    document
+.getElementById("coin-earning")
+.onclick = loadOrders;
+
+    
     /* =========================
         ناوبری پایین
     ========================= */
