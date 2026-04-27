@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse
 from .db import AsyncSessionLocal
 from .auth import router as auth_router
 from fastapi.staticfiles import StaticFiles
+from .useraccounts import account_manager
 
 # ==========================================================
 # BACKGROUND HEARTBEAT LOOP
