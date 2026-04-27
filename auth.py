@@ -292,23 +292,28 @@ async def get_accounts(
 
 
 @router.post("/switch/{account_id}")
-async def switch_account(account_id: int, user=Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
-    
+async def switch_account(
+    account_id: int,
+    user=Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db)
+):
     # check ownership
-    stmt = select(models.user_accounts).where(
-        models.user_accounts.c.user_id == user.id,
-        models.user_accounts.c.account_id == account_id
+    link = await db.scalar(
+        select(models.user_accounts)
+        .where(
+            models.user_accounts.c.user_id == user.id,
+            models.user_accounts.c.account_id == account_id
+        )
     )
-
-    res = await db.execute(stmt)
-    link = res.first()
 
     if not link:
         raise HTTPException(403, "Not your account")
 
     user.active_account_id = account_id
     await db.commit()
-    await account_manager.ensure_running(account_id)
+
+    # optional: start worker client if not running
+    asyncio.create_task(account_manager.start(account_id, db))
 
     return {"ok": True}
 
