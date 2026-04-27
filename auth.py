@@ -14,13 +14,13 @@ import hashlib
 import hmac
 from urllib.parse import parse_qs
 from pydantic import BaseModel
-from typing import Optional
 
 from aiobale import Client, Dispatcher
 
 from . import models, schemas
 from .db import get_async_db
 from .config import settings
+from .useraccounts import account_manager  # ← مهم
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -28,10 +28,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 BOT_TOKEN = settings.BOT_TOKEN
 
-
-# ============================================================
-# INIT DATA VALIDATION (MiniApp)
-# ============================================================
+# =====================================================================
+# INIT DATA VALIDATION
+# =====================================================================
 
 def validate_init_data(init_data: str) -> dict:
     parsed = parse_qs(init_data, strict_parsing=True)
@@ -41,14 +40,10 @@ def validate_init_data(init_data: str) -> dict:
         f"{k}={v[0]}" for k, v in sorted(parsed.items())
     )
 
-    secret_key = hashlib.sha256(
-        ("WebAppData" + BOT_TOKEN).encode()
-    ).digest()
+    secret_key = hashlib.sha256(("WebAppData" + BOT_TOKEN).encode()).digest()
 
     calculated_hash = hmac.new(
-        secret_key,
-        data_check_string.encode(),
-        hashlib.sha256
+        secret_key, data_check_string.encode(), hashlib.sha256
     ).hexdigest()
 
     if calculated_hash != hash_received:
@@ -57,16 +52,15 @@ def validate_init_data(init_data: str) -> dict:
     return {k: v[0] for k, v in parsed.items()}
 
 
-# ============================================================
+# =====================================================================
 # JWT
-# ============================================================
+# =====================================================================
 
 def create_jwt(user_id: int, expires: int = 60 * 60 * 24 * 7):
     payload = {
         "user_id": user_id,
         "exp": datetime.utcnow() + timedelta(seconds=expires),
     }
-
     return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
 
@@ -80,19 +74,16 @@ async def get_current_user(
     except Exception:
         raise HTTPException(401, "توکن نامعتبر است")
 
-    user = await db.scalar(
-        select(models.User).where(models.User.id == user_id)
-    )
-
+    user = await db.scalar(select(models.User).where(models.User.id == user_id))
     if not user:
         raise HTTPException(401, "کاربر پیدا نشد")
 
     return user
 
 
-# ============================================================
+# =====================================================================
 # SESSION STORAGE
-# ============================================================
+# =====================================================================
 
 SESSION_DIR = Path("session.bale")
 SESSION_DIR.mkdir(exist_ok=True)
@@ -101,19 +92,16 @@ pending_auth: dict[str, dict] = {}
 lock = asyncio.Lock()
 
 
-# ============================================================
-# MINIAPP LOGIN
-# ============================================================
+# =====================================================================
+# MINIAPP CHECK
+# =====================================================================
 
 class InitDataSchema(BaseModel):
     init_data: str
 
 
 @router.post("/check")
-async def check_user(
-    data: InitDataSchema,
-    db: AsyncSession = Depends(get_async_db),
-):
+async def check_user(data: InitDataSchema, db: AsyncSession = Depends(get_async_db)):
     validated = validate_init_data(data.init_data)
 
     bale_user = json.loads(validated["user"])
@@ -135,9 +123,9 @@ async def check_user(
     return {"has_account": has_account, "token": token}
 
 
-# ============================================================
-# START LOGIN ACCOUNT
-# ============================================================
+# =====================================================================
+# START LOGIN (SEND CODE)
+# =====================================================================
 
 @router.post("/start", response_model=schemas.StartLoginResponse)
 async def start_login(
@@ -146,26 +134,22 @@ async def start_login(
 ):
     phone = data.phone
 
-    session_file = SESSION_DIR / f"{phone}.bale"
-
-    if session_file.exists():
-        try:
-            os.remove(session_file)
-        except:
-            pass
+    # if there was a previous temporary file, delete it
+    temp_file = SESSION_DIR / f"{phone}.tmp"
+    if temp_file.exists():
+        temp_file.unlink()
 
     async with lock:
-
+        # close previous login attempt
         if phone in pending_auth:
             old = pending_auth.pop(phone)
-
             try:
                 await old["client"].stop()
             except:
                 pass
 
         dispatcher = Dispatcher()
-        client = Client(dispatcher, session_file=str(session_file))
+        client = Client(dispatcher, session_file=str(temp_file))
 
         try:
             res = await client.start_phone_auth(phone)
@@ -185,9 +169,9 @@ async def start_login(
     )
 
 
-# ============================================================
-# CONFIRM LOGIN
-# ============================================================
+# =====================================================================
+# CONFIRM LOGIN (VERIFY CODE)
+# =====================================================================
 
 @router.post("/confirm")
 async def confirm_code(
@@ -207,9 +191,9 @@ async def confirm_code(
     tx = entry["tx"]
     user_id = entry["user_id"]
 
+    # validate SMS code
     try:
         await client.validate_code(code, tx)
-
     except Exception as e:
         msg = str(e)
 
@@ -224,31 +208,34 @@ async def confirm_code(
 
         raise HTTPException(500, "خطا در تایید کد")
 
+    # ---------------------------------------
+    # CREATE OR UPDATE ACCOUNT
+    # ---------------------------------------
     account = await db.scalar(
         select(models.Account).where(models.Account.phone == phone)
     )
-    
-    session_file = SESSION_DIR / f"{account.id}.bale"
 
-    if not session_file.exists():
+    # read temporary file
+    temp_file = SESSION_DIR / f"{phone}.tmp"
+    if not temp_file.exists():
         raise HTTPException(500, "session ساخته نشد")
 
-    session_data = base64.b64encode(session_file.read_bytes()).decode()
+    raw_bytes = temp_file.read_bytes()
 
-    session_file = SESSION_DIR / f"{account.id}.bale"
-    session_file.write_bytes(base64_decoded_raw)
-    
     if not account:
         account = models.Account(
             phone=phone,
-            session_data=session_data,
-            is_blocked=False
+            session_data=base64.b64encode(raw_bytes).decode(),
+            is_blocked=False,
         )
-        existing_link = None
-
         db.add(account)
         await db.flush()
 
+        # create permanent session file for worker
+        session_file = SESSION_DIR / f"{account.id}.bale"
+        session_file.write_bytes(raw_bytes)
+
+        # link account to user
         await db.execute(
             models.user_accounts.insert().values(
                 user_id=user_id,
@@ -257,50 +244,65 @@ async def confirm_code(
         )
 
     else:
-        account.session_data = session_data
-        existing_link = await db.scalar(
-    select(models.user_accounts).where(
-        models.user_accounts.c.user_id == user_id,
-        models.user_accounts.c.account_id == account.id
-    )
-)
+        # update session_data
+        account.session_data = base64.b64encode(raw_bytes).decode()
 
+        # overwrite account's permanent session file
+        session_file = SESSION_DIR / f"{account.id}.bale"
+        session_file.write_bytes(raw_bytes)
+
+        # ensure link exists
+        link = await db.scalar(
+            select(models.user_accounts).where(
+                models.user_accounts.c.user_id == user_id,
+                models.user_accounts.c.account_id == account.id
+            )
+        )
+        if not link:
+            await db.execute(
+                models.user_accounts.insert().values(
+                    user_id=user_id,
+                    account_id=account.id
+                )
+            )
+
+    # save
     await db.commit()
 
-    return {"ok": True}
+    return {"ok": True, "account_id": account.id}
 
 
-# ============================================================
-# GET USER ACCOUNTS
-# ============================================================
+# =====================================================================
+# GET ALL ACCOUNTS OF USER
+# =====================================================================
 
 @router.get("/accounts")
 async def get_accounts(
     user: models.User = Depends(get_current_user),
     db: AsyncSession = Depends(get_async_db),
 ):
-
     result = await db.execute(
         select(models.Account)
         .join(models.user_accounts)
         .where(models.user_accounts.c.user_id == user.id)
     )
 
-    accounts = result.scalars().all()
+    return result.scalars().all()
 
-    return accounts
 
+# =====================================================================
+# SWITCH ACTIVE ACCOUNT
+# =====================================================================
 
 @router.post("/switch/{account_id}")
 async def switch_account(
     account_id: int,
     user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_async_db)
+    db: AsyncSession = Depends(get_async_db),
 ):
     # check ownership
     link = await db.scalar(
-        select(models.user_accounts)
-        .where(
+        select(models.user_accounts).where(
             models.user_accounts.c.user_id == user.id,
             models.user_accounts.c.account_id == account_id
         )
@@ -312,15 +314,15 @@ async def switch_account(
     user.active_account_id = account_id
     await db.commit()
 
-    # optional: start worker client if not running
+    # run worker if not running
     asyncio.create_task(account_manager.start(account_id, db))
 
     return {"ok": True}
 
 
-# ============================================================
-# PROFILE UPDATE
-# ============================================================
+# =====================================================================
+# COMPLETE PROFILE
+# =====================================================================
 
 @router.post("/profile/{account_id}")
 async def complete_profile(
@@ -329,7 +331,6 @@ async def complete_profile(
     user: models.User = Depends(get_current_user),
     db: AsyncSession = Depends(get_async_db),
 ):
-
     account = await db.scalar(
         select(models.Account)
         .join(models.user_accounts)
