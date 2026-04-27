@@ -41,6 +41,11 @@ class OrderType(str, Enum):
     CHANNEL = "channel"
     GROUP = "group"
 
+class OrderSpeed(str, Enum):
+    TORTOISE = "tortoise"
+    RABBIT = "rabbit"
+    CHEETAH = "cheetah"
+
 
 # =======================================
 # Association Tables
@@ -227,15 +232,23 @@ class Order(Base):
     index=True
 )
     
-    order_count: Mapped[int] = mapped_column(Integer, default=1)
-    join_link: Mapped[str] = mapped_column(String(255))
-    profile_picture_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    order_count: Mapped[int] = mapped_column(Integer, default=1, index=True)
+    join_link: Mapped[str] = mapped_column(String(255), index=True)
+    profile_picture_url: Mapped[Optional[str]] = mapped_column(String, nullable=True, index=True)
     
-    reward_coins: Mapped[int] = mapped_column(Integer, default=1)
+    reward_coins: Mapped[int] = mapped_column(Integer, default=1, index=True)
     report_count: Mapped[int] = mapped_column(Integer, default=0)
     
+    speed: Mapped[OrderSpeed] = mapped_column(
+    SQLEnum(OrderSpeed),
+    default=OrderSpeed.TORTOISE,
+    index=True
+)
+
+    priority_score: Mapped[int] = mapped_column(default=1, index=True)
+    
     # اصلاح: تعریف درست Mapped برای JSONB
-    differentiation_factors: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    differentiation_factors: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True, index=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
