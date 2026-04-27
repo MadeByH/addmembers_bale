@@ -2,187 +2,267 @@
 <html lang="fa" dir="rtl">
 
 <head>
-    <meta charset="UTF-8" />
-    <title>عضویت</title>
+<meta charset="UTF-8"/>
+<title>عضویت</title>
 
-    <script src="https://tapi.bale.ai/miniapp.js?3"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jalaali-js/dist/jalaali.min.js"></script>
+<script src="https://tapi.bale.ai/miniapp.js?3"></script>
+<script src="https://cdn.jsdelivr.net/npm/jalaali-js/dist/jalaali.min.js"></script>
 
-    <style>
-        body {
-            font-family: sans-serif;
-            background: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-        }
+<style>
 
-        .page {
-            display: none;
-        }
+body{
+font-family:sans-serif;
+background:#f5f5f5;
+margin:0;
+padding:20px;
+}
 
-        .visible {
-            display: block;
-        }
+.page{
+display:none;
+}
 
-        .input {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-        }
+.visible{
+display:block;
+}
 
-        .button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 15px;
-            border-radius: 8px;
-            background: #1976d2;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-        }
+.input{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:8px;
+border:1px solid #ccc;
+}
 
-        select {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            border-radius: 8px;
-        }
-    </style>
+.button{
+width:100%;
+padding:12px;
+margin-top:15px;
+border-radius:8px;
+background:#1976d2;
+color:#fff;
+border:none;
+cursor:pointer;
+}
+
+select{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:8px;
+}
+
+.welcome{
+text-align:center;
+margin-top:60px;
+}
+
+</style>
 </head>
 
 <body>
 
-    <!-- صفحه مرحله ۱ -->
-    <div id="step1" class="page">
-        <h3>ورود / ثبت نام</h3>
-        <input id="phone_input" class="input" type="tel" placeholder="شماره موبایل">
-        <button class="button" onclick="startLogin()">ارسال کد</button>
-    </div>
+<!-- مرحله 1 -->
+<div id="step1" class="page">
+<h3>ورود / ثبت نام</h3>
 
-    <!-- صفحه کد -->
-    <div id="step2" class="page">
-        <h3>کد ارسال شده را وارد کنید</h3>
-        <input id="code_input" class="input" type="text" placeholder="کد">
-        <button class="button" onclick="confirmCode()">تأیید</button>
-    </div>
+<input id="phone_input" class="input" type="tel" placeholder="شماره موبایل">
 
-    <!-- مرحله دوم: پروفایل -->
-    <div id="step_profile" class="page">
-        <h3>تکمیل اطلاعات</h3>
+<button class="button" onclick="startLogin()">
+ارسال کد
+</button>
 
-        <select id="gender_input">
-            <option value="male">مرد</option>
-            <option value="female">زن</option>
-        </select>
+</div>
 
-        <input id="birth_input" class="input" type="text" placeholder="تاریخ تولد شمسی مثل 1379/05/12">
 
-        <select id="city_input"></select>
+<!-- مرحله 2 -->
+<div id="step2" class="page">
 
-        <button class="button" onclick="completeProfile()">ادامه</button>
-    </div>
+<h3>کد ارسال شده را وارد کنید</h3>
 
-    <script>
-        let initData = null;
-        let tempToken = null;
-        let loginPhone = null;
+<input id="code_input" class="input" type="text" placeholder="کد">
 
-        function show(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove("visible"));
-            document.getElementById(id).classList.add("visible");
-        }
+<button class="button" onclick="confirmCode()">
+تأیید
+</button>
 
-        async function loadCities() {
-            const cities = await fetch("/static/cities.json").then(r => r.json());
-            const select = document.getElementById("city_input");
-            cities.forEach(c => {
-                let option = document.createElement("option");
-                option.value = c;
-                option.innerText = c;
-                select.appendChild(option);
-            });
-        }
+</div>
 
-        async function startLogin() {
-            const phone = document.getElementById("phone_input").value.trim();
-            if (!phone) return;
 
-            loginPhone = phone;
+<!-- مرحله پروفایل -->
+<div id="step_profile" class="page">
 
-            await fetch("/auth/start", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ phone })
-            });
+<h3>تکمیل اطلاعات</h3>
 
-            show("step2");
-        }
+<select id="gender_input">
+<option value="male">مرد</option>
+<option value="female">زن</option>
+</select>
 
-        async function confirmCode() {
-            const code = document.getElementById("code_input").value.trim();
+<input id="birth_input" class="input" type="text" placeholder="1379/05/12">
 
-            const res = await fetch("/auth/confirm", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    phone: loginPhone,
-                    code
-                })
-            });
+<select id="city_input"></select>
 
-            const data = await res.json();
-            localStorage.setItem("account_id", data.account_id);
-            show("step_profile");
-        }
+<button class="button" onclick="completeProfile()">
+ادامه
+</button>
 
-        async function completeProfile() {
-            const gender = document.getElementById("gender_input").value;
-            const birth = document.getElementById("birth_input").value;
-            const city = document.getElementById("city_input").value;
+</div>
 
-            // تبدیل تاریخ شمسی به میلادی
-            const [jy, jm, jd] = birth.split("/").map(Number);
-            const g = jalaali.toGregorian(jy, jm, jd);
-            const birth_greg =
+
+<!-- صفحه خوشامد -->
+<div id="welcome" class="page">
+
+<div class="welcome">
+
+<h2>خوش آمدید 🎉</h2>
+
+<p>
+ثبت نام شما با موفقیت انجام شد
+</p>
+
+<button class="button" onclick="goHome()">
+ورود به پنل
+</button>
+
+</div>
+
+</div>
+
+
+
+<script>
+
+let loginPhone=null;
+let createdAccountId=null;
+
+function show(id){
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("visible"));
+document.getElementById(id).classList.add("visible");
+}
+
+
+async function loadCities(){
+
+const cities=await fetch("/static/cities.json").then(r=>r.json());
+
+const select=document.getElementById("city_input");
+
+cities.forEach(c=>{
+let o=document.createElement("option");
+o.value=c;
+o.innerText=c;
+select.appendChild(o);
+});
+
+}
+
+
+
+async function startLogin(){
+
+const phone=document.getElementById("phone_input").value.trim();
+
+if(!phone)return;
+
+loginPhone=phone;
+
+await fetch("/auth/start",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({phone})
+});
+
+show("step2");
+
+}
+
+
+
+async function confirmCode(){
+
+const code=document.getElementById("code_input").value.trim();
+
+const res=await fetch("/auth/confirm",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({
+phone:loginPhone,
+code:code
+})
+});
+
+const data=await res.json();
+
+createdAccountId=data.account_id;
+
+localStorage.setItem("account_id",createdAccountId);
+
+show("step_profile");
+
+}
+
+
+
+async function completeProfile(){
+
+const gender=document.getElementById("gender_input").value;
+
+const birth=document.getElementById("birth_input").value;
+
+const city=document.getElementById("city_input").value;
+
+const [jy,jm,jd]=birth.split("/").map(Number);
+
+const g=jalaali.toGregorian(jy,jm,jd);
+
+const birth_greg=
 `${g.gy}-${String(g.gm).padStart(2,'0')}-${String(g.gd).padStart(2,'0')}`;
-            const account_id = localStorage.getItem("account_id");
 
-            const res = await fetch("/auth/profile", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + tempToken
-                },
-                body: JSON.stringify({
-                    gender,
-                    birthdate: birth_greg,
-                    city
-                })
-            });
+const account_id=localStorage.getItem("account_id");
 
-            const data = await res.json();
 
-            localStorage.setItem("token", data.token);
+await fetch(`/auth/profile/${account_id}`,{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+gender:gender,
+birthdate:birth_greg,
+city:city
+})
+});
 
-            show("wellcome");
-            window.location.href = "/";
-        }
+show("welcome");
 
-        async function init() {
-            loadCities();
+}
 
-            const web = window.Bale.WebApp;
-            web.ready();
-            web.expand();
 
-            initData = web.initData;
 
-            show("step1");
+function goHome(){
 
-        init();
-    </script>
+window.location.href="/";
+
+}
+
+
+
+async function init(){
+
+loadCities();
+
+const web=window.Bale.WebApp;
+
+web.ready();
+web.expand();
+
+show("step1");
+
+}
+
+init();
+
+</script>
+
 </body>
-
 </html>
