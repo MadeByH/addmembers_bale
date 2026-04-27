@@ -33,8 +33,8 @@ class Account(BaseModel):
 class OrderCreate(BaseModel):
     join_link: str
     order_count: int
-    reward_coins: int
     order_type: OrderType
+    speed: OrderSpeed
     differentiation_factors: Optional[dict] = None
 
 
