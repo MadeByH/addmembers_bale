@@ -25,7 +25,6 @@ class Account(BaseModel):
     phone: str
     coins: int
     invitations_count: int
-    status: Optional[str]
 
     class Config:
         from_attributes = True
