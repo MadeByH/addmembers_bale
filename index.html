@@ -608,131 +608,177 @@
         </footer>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const navItems = document.querySelectorAll('.bottom-nav .nav-item');
-            const sections = document.querySelectorAll('.section');
-            const userBalanceSpan = document.getElementById('user-balance');
+<script>
 
-            async function bootstrapAuth() {
+document.addEventListener("DOMContentLoaded", () => {
 
-    const web = window.Bale.WebApp;
+    const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+    const sections = document.querySelectorAll('.section');
+    const userBalanceSpan = document.getElementById('user-balance');
 
-    web.ready();
-    web.expand();
 
-    const initData = web.initData;
-
-    const res = await fetch("/auth/check", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({init_data:initData})
-    });
-
-    const data = await res.json();
-
-    if (!data.has_account) {
-        window.location.href="/register.html";
-        return;
+    /* -------------------------------------
+       تبدیل وضعیت اکانت‌ها به متن خوانا
+    ------------------------------------- */
+    function mapStatus(status) {
+        switch (status) {
+            case "LOGGED_IN": return "آنلاین";
+            case "LOGGED_OUT": return "آفلاین";
+            case "CONNECTING": return "در حال اتصال…";
+            case "ERROR": return "خطا";
+            default: return "نامشخص";
+        }
     }
 
-    localStorage.setItem("token", data.token);
 
-    const user = web.initDataUnsafe.user;
+    /* -------------------------------------
+        بارگذاری پروفایل کاربر اصلی (بله)
+    ------------------------------------- */
+    function loadUserProfile(user) {
 
-    loadUserProfile(user);
+        const name = user?.first_name || "کاربر";
+        const username = user?.username ? "@" + user.username : "";
+        const avatar = user?.photo_url || 
+            "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-    await loadAccounts();
+        document.querySelector(".profile-name").textContent = name;
+        document.querySelector(".profile-phone").textContent = username;
+        document.querySelector(".profile-avatar").src = avatar;
+    }
 
-    navigateTo("profile");
-}
-            
-            function loadUserProfile(user) {
 
-    if (!user) return;
 
-    document.querySelector(".profile-name").textContent =
-        user.first_name || "کاربر";
+    /* -------------------------------------
+       دریافت لیست حساب‌های بله
+    ------------------------------------- */
+    async function loadAccounts() {
 
-    document.querySelector(".profile-phone").textContent =
-        user.username ? "@" + user.username : "";
+        const token = localStorage.getItem("token");
 
-    document.querySelector(".profile-avatar").src =
-        user.photo_url || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-}
-            
-            async function loadAccounts() {
+        if (!token) return;
 
-    const token = localStorage.getItem("token");
+        let res;
 
-    const res = await fetch("/auth/accounts", {
-        headers: {
-            "Authorization": "Bearer " + token
-        }
-    });
-
-    const accounts = await res.json();
-
-    const container = document.getElementById("accounts-list");
-    container.innerHTML = "";
-
-    accounts.forEach(acc => {
-
-        const el = document.createElement("div");
-
-        el.className =
-            "flex justify-between items-center bg-white p-3 rounded-lg shadow";
-
-        el.innerHTML = `
-            <div>
-                <div class="font-bold">${acc.phone}</div>
-                <div class="text-sm text-gray-500">${acc.status}</div>
-            </div>
-            <i class='bx bx-dots-vertical-rounded text-xl'></i>
-        `;
-
-        container.appendChild(el);
-    });
-}
-            
-            function updateUserBalance(newBalance) {
-                userBalanceSpan.textContent = newBalance;
-            }
-
-            function navigateTo(pageId) {
-                sections.forEach(section => section.classList.remove('active'));
-                const targetSection = document.getElementById(pageId);
-                if (targetSection) {
-                    targetSection.classList.add('active');
-                } else {
-                    console.error("Section not found:", pageId);
-                }
-
-                // Update active state for nav items
-                navItems.forEach(item => {
-                    if (item.getAttribute('data-page') === pageId) {
-                        item.classList.add('active');
-                    } else {
-                        item.classList.remove('active');
-                    }
-                });
-            }
-
-            navItems.forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const pageId = item.getAttribute('data-page');
-                    navigateTo(pageId);
-                });
+        try {
+            res = await fetch("/auth/accounts", {
+                headers: { "Authorization": "Bearer " + token }
             });
+        } catch (e) {
+            console.error("Connection failed", e);
+            return;
+        }
 
-            bootstrapAuth();
+        if (!res.ok) {
+            console.warn("Token expired → redirect");
+            localStorage.removeItem("token");
+            window.location.href = "/register.html";
+            return;
+        }
 
+        const accounts = await res.json();
+        const container = document.getElementById("accounts-list");
+
+        container.innerHTML = "";
+
+        accounts.forEach(acc => {
+
+            const el = document.createElement("div");
+            el.className =
+                "flex justify-between items-center bg-white p-3 rounded-lg shadow";
+
+            el.innerHTML = `
+                <div>
+                    <div class="font-bold">${acc.phone}</div>
+                    <div class="text-sm text-gray-500">${mapStatus(acc.status)}</div>
+                </div>
+                <i class='bx bx-dots-vertical-rounded text-xl'></i>
+            `;
+
+            container.appendChild(el);
         });
-        document.getElementById("add-account-btn").onclick = () => {
-    window.location.href = "/register.html";
-};
+    }
 
-    </script>
+
+
+    /* -------------------------------------
+           مسیریابی بین صفحات
+    ------------------------------------- */
+    function navigateTo(pageId) {
+
+        sections.forEach(s => s.classList.remove("active"));
+
+        const target = document.getElementById(pageId);
+
+        if (target) target.classList.add("active");
+
+        navItems.forEach(item => {
+            item.classList.toggle("active",
+                item.getAttribute("data-page") === pageId
+            );
+        });
+    }
+
+
+    /* -------------------------------------
+             احراز هویت اولیه
+    ------------------------------------- */
+    async function bootstrapAuth() {
+
+        const web = window.Bale.WebApp;
+        web.ready();
+        web.expand();
+
+        const initData = web.initData;
+
+        const res = await fetch("/auth/check", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ init_data: initData })
+        });
+
+        const data = await res.json();
+
+        if (!data.has_account) {
+            window.location.href = "/register.html";
+            return;
+        }
+
+        localStorage.setItem("token", data.token);
+
+        const user = web.initDataUnsafe?.user || {};
+        loadUserProfile(user);
+
+        await loadAccounts();
+
+        navigateTo("profile");
+    }
+
+
+
+    /* -------------------------------------
+                Navigation events
+    ------------------------------------- */
+    navItems.forEach(item => {
+        item.addEventListener("click", e => {
+            e.preventDefault();
+            navigateTo(item.getAttribute("data-page"));
+        });
+    });
+
+
+
+    /* -------------------------------------
+         افزودن حساب جدید بله
+    ------------------------------------- */
+    document.getElementById("add-account-btn").onclick = () => {
+        window.location.href = "/register.html?mode=account";
+    };
+
+
+    /* شروع */
+    bootstrapAuth();
+
+});
+</script>
 </body>
 </html>
