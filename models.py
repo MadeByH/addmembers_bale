@@ -174,6 +174,7 @@ class Account(Base):
     wheel_chances: Mapped[int] = mapped_column(Integer, default=0)
     total_joins_today: Mapped[int] = mapped_column(Integer, default=0)
     last_join_reset_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    last_join_time: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # --- VIP ---
     vip_expiry: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
