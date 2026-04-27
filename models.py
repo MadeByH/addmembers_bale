@@ -15,6 +15,7 @@ from sqlalchemy import (
     Index,
 )
 from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.dialects.postgresql import JSONB
 
 
 # =======================================
@@ -34,6 +35,13 @@ class AccountStatus(str, Enum):
     BLOCKED = "blocked"
     SLEEP = "sleep"
     ERROR = "error"
+
+class OrderStatus(str, Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
 
 
 # =======================================
@@ -207,9 +215,9 @@ class Order(Base):
     order_status: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     order_count: Mapped[int] = mapped_column(Integer, default=1)
 
-    username: Mapped[str] = mapped_column(String(100))
+    join_link: Mapped[str] = mapped_column(String(100))
     profile_picture_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    differentiation_factors: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    differentiation_factors = mapped_column(JSONB, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
