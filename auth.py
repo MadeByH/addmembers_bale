@@ -292,7 +292,7 @@ async def get_accounts(
 
 
 @router.post("/switch/{account_id}")
-async def switch_account(account_id: int, user=Depends(get_current_user)):
+async def switch_account(account_id: int, user=Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
     
     # check ownership
     stmt = select(models.user_accounts).where(
@@ -308,7 +308,7 @@ async def switch_account(account_id: int, user=Depends(get_current_user)):
 
     user.active_account_id = account_id
     await db.commit()
-    await account_manager.ensure_running(account.id)
+    await account_manager.ensure_running(account_id)
 
     return {"ok": True}
 
