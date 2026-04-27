@@ -35,6 +35,7 @@ class OrderCreate(BaseModel):
     order_count: int
     order_type: OrderType
     speed: OrderSpeed
+    reward_coins: int = 1
     differentiation_factors: Optional[dict] = None
 
 
