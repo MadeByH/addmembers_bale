@@ -212,12 +212,20 @@ class Order(Base):
         index=True
     )
 
-    order_status: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    # اصلاح: استفاده از Enum تعریف شده
+    order_status: Mapped[OrderStatus] = mapped_column(
+        String(50), 
+        default=OrderStatus.PENDING,
+        index=True
+    )
+    
     order_count: Mapped[int] = mapped_column(Integer, default=1)
 
-    join_link: Mapped[str] = mapped_column(String(100))
+    join_link: Mapped[str] = mapped_column(String(255))
     profile_picture_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    differentiation_factors = mapped_column(JSONB, nullable=True)
+    
+    # اصلاح: تعریف درست Mapped برای JSONB
+    differentiation_factors: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
@@ -228,10 +236,8 @@ class Order(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    # One-to-many: order belongs to one account
+    # Relationships
     account: Mapped["Account"] = relationship(back_populates="orders")
-
-    # Many-to-many: order participants
     joined_accounts: Mapped[List["Account"]] = relationship(
         secondary=order_accounts_association,
         back_populates="participated_orders",
@@ -239,4 +245,5 @@ class Order(Base):
     )
 
     def __repr__(self):
-        return f"<Order(id={self.id}, account_id={self.account_id}, username={self.username})>"
+        # اصلاح: تغییر username به join_link برای جلوگیری از AttributeError
+        return f"<Order(id={self.id}, account_id={self.account_id}, link={self.join_link})>"
