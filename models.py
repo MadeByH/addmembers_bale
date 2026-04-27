@@ -251,6 +251,11 @@ class Order(Base):
     # اصلاح: تعریف درست Mapped برای JSONB
     differentiation_factors: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True, index=True)
 
+    completed_at: Mapped[Optional[datetime]] = mapped_column(
+    DateTime(timezone=True),
+    nullable=True
+)
+    
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
