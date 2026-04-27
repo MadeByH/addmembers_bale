@@ -226,7 +226,6 @@ async def confirm_code(
         account = models.Account(
             phone=phone,
             session_data=base64.b64encode(raw_bytes).decode(),
-            is_blocked=False,
         )
         db.add(account)
         await db.flush()
