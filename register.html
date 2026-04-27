@@ -178,27 +178,29 @@ show("step2");
 
 
 
-async function confirmCode(){
+async function confirmCode() {
+    const code = document.getElementById("code_input").value.trim();
 
-const code=document.getElementById("code_input").value.trim();
+    const res = await fetch("/auth/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            phone: loginPhone,
+            code: code
+        })
+    });
 
-const res=await fetch("/auth/confirm",{
-method:"POST",
-headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({
-phone:loginPhone,
-code:code
-})
-});
+    if (!res.ok) {
+        alert("کد اشتباه است");
+        return;
+    }
 
-const data=await res.json();
+    const data = await res.json();
 
-createdAccountId=data.account_id;
+    createdAccountId = data.account_id;
+    localStorage.setItem("account_id", createdAccountId);
 
-localStorage.setItem("account_id",createdAccountId);
-
-show("step_profile");
-
+    show("step_profile");
 }
 
 
@@ -243,10 +245,15 @@ show("welcome");
 
 
 
-function goHome(){
+function goHome() {
+    const params = new URLSearchParams(location.search);
+    const isAccount = params.get("mode") === "account";
 
-window.location.href="/";
-
+    if (isAccount) {
+        window.location.href = "/?added=1";
+    } else {
+        window.location.href = "/";
+    }
 }
 
 
