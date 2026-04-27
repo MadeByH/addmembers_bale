@@ -36,6 +36,10 @@ class OrderStatus(str, Enum):
     FAILED = "failed"
     CANCELLED = "cancelled"
 
+class OrderType(str, Enum):
+    CHANNEL = "channel"
+    GROUP = "group"
+
 
 # =======================================
 # Association Tables
@@ -156,12 +160,18 @@ class Account(Base):
     )
 
     coins: Mapped[int] = mapped_column(Integer, default=0)
+    
+    # --- Invite & Reward System ---
+    has_invited_with_link: Mapped[bool] = mapped_column(Boolean, default=False)
     invitations_count: Mapped[int] = mapped_column(Integer, default=0)
-    # اینجا باید ستون جدید has_invited_with_link اضافه شه برای بررسی قبلا عضو برنامه شده
-    # همچنین ستون wheel_chances برای دادن شانس چرخوندن گردونه
-    # همچنین ستون total_joins_today برای هرچند مقدار عضویت، یه شانس بگیره
+    
+    wheel_chances: Mapped[int] = mapped_column(Integer, default=0)
+    total_joins_today: Mapped[int] = mapped_column(Integer, default=0)
+    last_join_reset_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+
+    # --- VIP ---
+    vip_expiry: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     vip_status: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    # این ستون vip_status هم باید طوری باشه که وقتی vip انقضا یافت دیگه نداشته باشه مثلا vip خاص با انقضا n vip_expiry
 
     gender: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     birthdate: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
@@ -210,11 +220,18 @@ class Order(Base):
         index=True
     )
     
+    order_type: Mapped[OrderType] = mapped_column(
+    String(20),
+    default=OrderType.CHANNEL,
+    index=True
+)
+    
     order_count: Mapped[int] = mapped_column(Integer, default=1)
-    # اینجا نوع سفارش هم اضافه کنیم
-    # همچنین ستونی برای اینکه وقتی گزارش به تعداد ثابت مشخص رسید سفارش حذف شه report
     join_link: Mapped[str] = mapped_column(String(255))
     profile_picture_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    
+    reward_coins: Mapped[int] = mapped_column(Integer, default=1)
+    report_count: Mapped[int] = mapped_column(Integer, default=0)
     
     # اصلاح: تعریف درست Mapped برای JSONB
     differentiation_factors: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
