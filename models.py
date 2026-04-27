@@ -16,6 +16,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Enum as SQLEnum
 
 
 # =======================================
@@ -49,8 +50,8 @@ class OrderType(str, Enum):
 order_accounts_association = Table(
     "order_accounts_association",
     Base.metadata,
-    Column("order_id", Integer, ForeignKey("orders.id", ondelete="CASCADE")),
-    Column("account_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE")),
+    Column("order_id", Integer, ForeignKey("orders.id", ondelete="CASCADE"), primary_key=True),
+    Column("account_id", Integer, ForeignKey("accounts.id", ondelete="CASCADE"), primary_key=True),
     Column(
         "joined_at",
         DateTime(timezone=True),
@@ -215,13 +216,13 @@ class Order(Base):
 
     # اصلاح: استفاده از Enum تعریف شده
     order_status: Mapped[OrderStatus] = mapped_column(
-        String(50), 
-        default=OrderStatus.PENDING,
-        index=True
+    SQLEnum(OrderStatus),
+    default=OrderStatus.PENDING,
+    index=True
     )
     
     order_type: Mapped[OrderType] = mapped_column(
-    String(20),
+    SQLEnum(OrderType),
     default=OrderType.CHANNEL,
     index=True
 )
