@@ -128,3 +128,64 @@ async def get_profile(
         "bale_name": account.bale_name,
         "bale_avatar": account.bale_avatar,
     }
+
+
+# ============================
+# WALLET OF ACTIVE ACCOUNT
+# ============================
+
+wallet_router = APIRouter(tags=["Wallet"])
+
+@wallet_router.get("/wallet")
+async def get_wallet(
+    user: models.User = Depends(get_current_user)
+):
+    if not user.active_account_id:
+        raise HTTPException(400, "No active account selected")
+
+    account = user.active_account
+    return {"coins": account.coins}
+
+
+# ============================
+# ORDERS FOR ACTIVE ACCOUNT
+# ============================
+
+orders_router = APIRouter(tags=["Orders"])
+
+@orders_router.get("/orders")
+async def get_orders(
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db)
+):
+    if not user.active_account_id:
+        raise HTTPException(400, "No active account selected")
+
+    account = user.active_account
+
+    result = await db.execute(
+        select(models.Order)
+        .where(models.Order.account_id == account.id)
+        .order_by(models.Order.created_at.desc())
+    )
+
+    orders = result.scalars().all()
+
+    return {
+        "orders": [
+            {
+                "id": o.id,
+                "title": o.join_link,  # یا هر عنوانی که می‌خوای
+                "status": o.order_status,
+                "avatar": o.profile_picture_url,
+                "join_link": o.join_link,
+            }
+            for o in orders
+        ]
+    }
+
+
+# Register extra routers
+router.include_router(profile_router)
+router.include_router(wallet_router)
+router.include_router(orders_router)
