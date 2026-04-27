@@ -723,35 +723,40 @@ document.addEventListener("DOMContentLoaded", () => {
              احراز هویت اولیه
     ------------------------------------- */
     async function bootstrapAuth() {
+    const web = window.Bale.WebApp;
+    web.ready();
+    web.expand();
 
-        const web = window.Bale.WebApp;
-        web.ready();
-        web.expand();
+    const initData = web.initData;
 
-        const initData = web.initData;
+    const res = await fetch("/auth/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ init_data: initData })
+    });
 
-        const res = await fetch("/auth/check", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ init_data: initData })
-        });
+    const data = await res.json();
 
-        const data = await res.json();
-
-        if (!data.has_account) {
-            window.location.href = "/register.html";
-            return;
-        }
-
-        localStorage.setItem("token", data.token);
-
-        const user = web.initDataUnsafe?.user || {};
-        loadUserProfile(user);
-
-        await loadAccounts();
-
-        navigateTo("profile");
+    if (!data.has_account) {
+        const params = new URLSearchParams(window.location.search);
+        const mode = params.get("mode");
+        window.location.href = mode === "account" 
+            ? "/register.html?mode=account"
+            : "/register.html";
+        return;
     }
+
+    localStorage.setItem("token", data.token);
+
+    const accounts = await loadAccounts();
+
+    // حساب اصلی باید یکی باشد
+    const mainAccount = accounts.find(a => a.is_main) || accounts[0];
+
+    loadUserProfile(web.initDataUnsafe?.user || {}, mainAccount);
+
+    navigateTo("profile");
+}
 
 
 
