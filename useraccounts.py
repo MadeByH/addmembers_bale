@@ -137,7 +137,7 @@ class AccountManager:
             return
 
         if not account.session_data:
-            account.status = AccountStatus.ERROR
+            await db.delete(account)
             await db.commit()
             return
 
@@ -192,8 +192,7 @@ class AccountManager:
             except:
                 pass
 
-            account.status = AccountStatus.ERROR
-            account.last_seen = datetime.now(timezone.utc)
+            await db.delete(account)
 
             await db.commit()
 
