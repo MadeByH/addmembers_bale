@@ -30,6 +30,14 @@ class Account(BaseModel):
         from_attributes = True
 
 
+class OrderCreate(BaseModel):
+    join_link: str
+    order_count: int
+    reward_coins: int
+    order_type: OrderType
+    differentiation_factors: Optional[dict] = None
+
+
 # --- Note on Relationships in Pydantic Schemas ---
 # Pydantic schemas typically represent the data structure for API requests/responses.
 # They usually do NOT directly include SQLAlchemy relationship objects (like 'owner', 'joined_accounts', 'participated_orders').
