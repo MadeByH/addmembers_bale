@@ -524,52 +524,62 @@ animation:toast 3s forwards;
             </div>
 
             <!-- Coin Earning Section -->
-            <div id="coin-earning" class="section">
+            <div id="coin-earning" class="section coin-section">
                 <div class="coin-balance-large">
-                    <i class='bx bxs-coin'></i> 1000
+                    <i class='bx bxs-coin'></i> 0
                 </div>
+
+    <!-- فیلتر کانال / گروه -->
                 <div class="flex justify-center mb-4 gap-3">
-                    <button id="filter-channel"
-                        class="px-4 py-2 rounded-lg bg-blue-500 text-white">
-                        کانال
+                    <button id="earn-filter-channel"
+                    class="px-4 py-2 rounded-lg filter-active">
+                    کانال
                     </button>
 
-                    <button id="filter-group"
-                        class="px-4 py-2 rounded-lg bg-gray-300 text-gray-700">
-                        گروه
+                    <button id="earn-filter-group"
+                    class="px-4 py-2 rounded-lg filter-inactive">
+                    گروه
                     </button>
                 </div>
-                <div class="action-buttons">
-                    <button class="btn-primary"><i class='bx bx-wallet-alt'></i> دریافت سکه</button>
-                    <button class="btn-secondary"><i class='bx bx-receipt'></i> گزارش سفارش</button>
+
+    <!-- سفارش فعلی برای عضویت -->
+                <div id="current-earn-order" class="channel-item mt-4 hidden">
+                    <img id="earn-order-avatar"
+                     src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                     alt="Channel Avatar">
+                    <div class="channel-info">
+                        <span id="earn-order-name" class="channel-name">...</span>
+                        <span id="earn-order-type" class="channel-type">...</span>
+                        <span id="earn-order-status" class="text-xs text-gray-500"></span>
+                    </div>
                 </div>
 
-                <div class="channel-item">
-                    <img src="[/mnt/data/placeholder-avatar.png"](https://storage.gapgpt.app/media/code_interpreter/4c497cf8-04d7-43e1-b042-1a917ade047a/placeholder-avatar.png%22) alt="Channel Avatar">
-                    <div class="channel-info">
-                        <span class="channel-name">نام کانال نمونه</span>
-                        <span class="channel-type">کانال</span>
-                    </div>
-                    <span class="order-status">در انتظار</span>
-                </dv>
-                <button class="btn-next-order">سفارش بعدی</button>
-
-                <h3 class="order-list-header">آخرین سفارشات</h3>
-                 <div class="channel-item">
-                    <img src="[/mnt/data/placeholder-avatar.png"](https://storage.gapgpt.app/media/code_interpreter/4c497cf8-04d7-43e1-b042-1a917ade047a/placeholder-avatar.png%22) alt="Channel Avatar">
-                    <div class="channel-info">
-                        <span class="channel-name">کانال دوم</span>
-                        <span class="channel-type">گروه</span>
-                    </div>
-                    <span class="order-status status-completed">تکمیل شده</span>
+    <!-- پیام خالی بودن -->
+                <div id="earn-empty" class="text-center text-gray-500 py-6 hidden">
+                در حال حاضر سفارشی برای عضویت در این دسته وجود ندارد.
+                <br>
+                دقایقی دیگر دوباره تلاش کنید.
                 </div>
-                 <div class="channel-item">
-                    <img src="[/mnt/data/placeholder-avatar.png"](https://storage.gapgpt.app/media/code_interpreter/4c497cf8-04d7-43e1-b042-1a917ade047a/placeholder-avatar.png%22) alt="Channel Avatar">
-                    <div class="channel-info">
-                        <span class="channel-name">کانال سوم</span>
-                        <span class="channel-type">کانال</span>
-                    </div>
-                    <span class="order-status status-pending">در انتظار</span>
+
+    <!-- دکمه‌ها: بعدی / عضویت / گزارش -->
+                <div class="flex items-center justify-between mt-6 gap-2">
+        <!-- سفارش بعدی (راست) -->
+                    <button id="btn-next-order"
+                    class="flex-1 text-sm bg-gray-200 text-gray-800 py-2 px-3 rounded-lg">
+                    سفارش بعدی
+                    </button>
+
+        <!-- عضویت (وسط - بزرگتر) -->
+                    <button id="btn-join-order"
+                    class="flex-[1.6] bg-green-500 text-white py-3 px-4 rounded-xl font-bold">
+                    عضویت و دریافت سکه
+                    </button>
+
+        <!-- گزارش سفارش (چپ) -->
+                    <button id="btn-report-order"
+                    class="flex-1 text-sm bg-red-100 text-red-600 py-2 px-3 rounded-lg">
+                    گزارش سفارش
+                    </button>
                 </div>
             </div>
 
