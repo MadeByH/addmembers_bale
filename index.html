@@ -471,6 +471,16 @@ animation:toast 3s forwards;
 100%{opacity:0}
 }
 
+        .filter-active {
+    background-color: #007bff !important;
+    color: white !important;
+}
+
+        .filter-inactive {
+    background-color: #e5e5e5;
+    color: #444;
+}
+
     </style>
 </head>
 <body>
@@ -518,6 +528,17 @@ animation:toast 3s forwards;
                 <div class="coin-balance-large">
                     <i class='bx bxs-coin'></i> 1000
                 </div>
+                <div class="flex justify-center mb-4 gap-3">
+                    <button id="filter-channel"
+                        class="px-4 py-2 rounded-lg bg-blue-500 text-white">
+                        کانال
+                    </button>
+
+                    <button id="filter-group"
+                        class="px-4 py-2 rounded-lg bg-gray-300 text-gray-700">
+                        گروه
+                    </button>
+                </div>
                 <div class="action-buttons">
                     <button class="btn-primary"><i class='bx bx-wallet-alt'></i> دریافت سکه</button>
                     <button class="btn-secondary"><i class='bx bx-receipt'></i> گزارش سفارش</button>
@@ -530,7 +551,7 @@ animation:toast 3s forwards;
                         <span class="channel-type">کانال</span>
                     </div>
                     <span class="order-status">در انتظار</span>
-                </div>
+                </dv>
                 <button class="btn-next-order">سفارش بعدی</button>
 
                 <h3 class="order-list-header">آخرین سفارشات</h3>
@@ -653,11 +674,11 @@ animation:toast 3s forwards;
                 <span>فروشگاه</span>
             </a>
              <a href="#" class="nav-item" data-page="coin-earning">
-                <i class='bx bx-wallet'></i>
+                <i class='bx bxs-coin'></i>
                 <span>کسب سکه</span>
             </a>
              <a href="#" class="nav-item" data-page="home">
-                <i class='bx bx-home'></i>
+                <i class='bx bx-home-alt'></i>
                 <span>خانه</span>
             </a>
         </footer>
@@ -675,6 +696,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const navItems = document.querySelectorAll('.bottom-nav .nav-item');
     const sections = document.querySelectorAll('.section');
+    let currentOrderType = "channel";
 
     /* =========================
         تبدیل وضعیت به متن فارسی
@@ -881,6 +903,8 @@ container.appendChild(el);
 
         const { orders } = await res.json();
 
+        const filtered = orders.filter(o => o.type === currentOrderType);
+
         if (!orders || orders.length === 0) {
             container.innerHTML =
                 "<div class='text-center text-gray-500 py-4'>کانالی برای عضویت موجود نیست، دقایقی دیگر تلاش کنید...</div>";
@@ -907,6 +931,19 @@ container.appendChild(el);
 
             container.appendChild(el);
         });
+    }
+
+    function refreshFilterUI() {
+    const chanBtn = document.getElementById("filter-channel");
+    const groupBtn = document.getElementById("filter-group");
+
+    if (currentOrderType === "channel") {
+        chanBtn.classList.add("filter-active");
+        groupBtn.classList.remove("filter-active");
+    } else {
+        groupBtn.classList.add("filter-active");
+        chanBtn.classList.remove("filter-active");
+    }
     }
 
     /* =========================
@@ -947,6 +984,17 @@ container.appendChild(el);
 .getElementById("coin-earning")
 .onclick = loadOrders;
 
+    document.getElementById("filter-channel").onclick = () => {
+    currentOrderType = "channel";
+    refreshFilterUI();
+    loadOrders();
+};
+
+    document.getElementById("filter-group").onclick = () => {
+    currentOrderType = "group";
+    refreshFilterUI();
+    loadOrders();
+};
     
     /* =========================
         ناوبری پایین
